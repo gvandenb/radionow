@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.radionow.stream.dao.StationRepository;
 import com.radionow.stream.model.Station;
 
-@CrossOrigin(origins = "http://localhost:8080")
+@CrossOrigin(origins = "http://localhost:8081")
 @RestController
 @RequestMapping("/api")
 public class StationController {
