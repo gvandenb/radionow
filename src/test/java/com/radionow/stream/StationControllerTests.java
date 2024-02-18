@@ -40,7 +40,7 @@ public class StationControllerTests {
 
 	@Test
 	void shouldCreateStation() throws Exception {
-		Station station = new Station("Spring Boot @WebMvcTest", "CallSign", "Frequency", "Description", "URL", null);
+		Station station = new Station("Spring Boot @WebMvcTest", "CallSign", "Frequency", "Description", "URL");
 
 		mockMvc.perform(post("/api/stations").contentType(MediaType.APPLICATION_JSON)
 			.content(objectMapper.writeValueAsString(station)))
@@ -51,7 +51,7 @@ public class StationControllerTests {
 	@Test
 	void shouldReturnStation() throws Exception {
 	    long id = 1L;
-	    Station station = new Station(id, "Spring Boot @WebMvcTest", "CallSign", "Frequency", "Description", "URL", null);
+	    Station station = new Station(id, "Spring Boot @WebMvcTest", "CallSign", "Frequency", "Description", "URL");
 
 		when(stationRepository.findById(id)).thenReturn(Optional.of(station));
 		mockMvc.perform(get("/api/stations/{id}", id)).andExpect(status().isOk())
@@ -77,9 +77,9 @@ public class StationControllerTests {
 	@Test
 	void shouldReturnListOfStations() throws Exception {
 	    List<Station> stations = new ArrayList<>(
-	        Arrays.asList(new Station(1L, "Spring Boot @WebMvcTest 1", "CallSign 1", "Frequency 1", "Description 1", "URL 1", null),
-		        new Station(2L, "Spring Boot @WebMvcTest 2", "CallSign 2", "Frequency 2", "Description 2", "URL 2", null),
-		        new Station(3L, "Spring Boot @WebMvcTest 3", "CallSign 3", "Frequency 3", "Description 3", "URL 3", null)));
+	        Arrays.asList(new Station(1L, "Spring Boot @WebMvcTest 1", "CallSign 1", "Frequency 1", "Description 1", "URL 1"),
+		        new Station(2L, "Spring Boot @WebMvcTest 2", "CallSign 2", "Frequency 2", "Description 2", "URL 2"),
+		        new Station(3L, "Spring Boot @WebMvcTest 3", "CallSign 3", "Frequency 3", "Description 3", "URL 3")));
 	
 	    when(stationRepository.findAll()).thenReturn(stations);
 	    mockMvc.perform(get("/api/stations"))
@@ -91,8 +91,8 @@ public class StationControllerTests {
   @Test
   void shouldReturnListOfStationsWithFilter() throws Exception {
     List<Station> stations = new ArrayList<>(
-        Arrays.asList(new Station(1L, "Spring Boot @WebMvcTest 1", "CallSign 1", "Frequency 1", "Description 1", "URL 1", null),
-        	new Station(3L, "Spring Boot @WebMvcTest 1", "CallSign 1", "Frequency 1", "Description 1", "URL 1", null)));
+        Arrays.asList(new Station(1L, "Spring Boot @WebMvcTest 1", "CallSign 1", "Frequency 1", "Description 1", "URL 1"),
+        	new Station(3L, "Spring Boot @WebMvcTest 1", "CallSign 1", "Frequency 1", "Description 1", "URL 1")));
 
     String title = "Boot";
     MultiValueMap<String, String> paramsMap = new LinkedMultiValueMap<>();
@@ -130,8 +130,8 @@ public class StationControllerTests {
   void shouldUpdateStation() throws Exception {
     long id = 1L;
 
-    Station station = new Station(id, "Spring Boot @WebMvcTest 1", "CallSign 1", "Frequency 1", "Description 1", "URL 1", null);
-    Station updatedStation = new Station(id, "Spring Boot @WebMvcTest Updated", "CallSign Updated", "Frequency Updated", "Description 1", "URL 1", null);
+    Station station = new Station(id, "Spring Boot @WebMvcTest 1", "CallSign 1", "Frequency 1", "Description 1", "URL 1");
+    Station updatedStation = new Station(id, "Spring Boot @WebMvcTest Updated", "CallSign Updated", "Frequency Updated", "Description 1", "URL 1");
 
     when(stationRepository.findById(id)).thenReturn(Optional.of(station));
     when(stationRepository.save(any(Station.class))).thenReturn(updatedStation);
@@ -151,7 +151,7 @@ public class StationControllerTests {
   void shouldReturnNotFoundUpdateStation() throws Exception {
     long id = 1L;
 
-    Station updatedStation = new Station(id, "Spring Boot @WebMvcTest Updated", "CallSign Updated", "Frequency Updated", "Description 1", "URL 1", null);
+    Station updatedStation = new Station(id, "Spring Boot @WebMvcTest Updated", "CallSign Updated", "Frequency Updated", "Description 1", "URL 1");
 
     when(stationRepository.findById(id)).thenReturn(Optional.empty());
     when(stationRepository.save(any(Station.class))).thenReturn(updatedStation);

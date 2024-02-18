@@ -1,6 +1,8 @@
 package com.radionow.stream.model;
 
+import java.util.ArrayList;
 import java.util.List;
+
 import jakarta.persistence.*; // for Spring Boot 3
 
 @Entity
@@ -23,27 +25,25 @@ public class Station {
 	@Column(name = "description")
 	private String description;
 	
-	@Column(name = "url")
+	@Column(length = 2048, name = "url")
 	private String url;
 	
-	@ManyToMany
-	private List<Genre> genres;
+	@Column(name = "categories")
+	@OneToMany(cascade = CascadeType.ALL)
+	private List<Category> categories = new ArrayList<Category>();
 
 	public Station() {}
 	
-	public Station(String title, String callsign, String frequency, String description, String url,
-			List<Genre> genres) {
+	public Station(String title, String callsign, String frequency, String description, String url) {
 
 		this.title = title;
 		this.callsign = callsign;
 		this.frequency = frequency;
 		this.description = description;
 		this.url = url;
-		this.genres = genres;
 	}
 	
-	public Station(Long id, String title, String callsign, String frequency, String description, String url,
-			List<Genre> genres) {
+	public Station(Long id, String title, String callsign, String frequency, String description, String url) {
 
 		this.id = id;
 		this.title = title;
@@ -51,7 +51,17 @@ public class Station {
 		this.frequency = frequency;
 		this.description = description;
 		this.url = url;
-		this.genres = genres;
+	}
+
+	public Station(String title, String callsign, String frequency, String description, String url,
+			List<Category> categories) {
+		super();
+		this.title = title;
+		this.callsign = callsign;
+		this.frequency = frequency;
+		this.description = description;
+		this.url = url;
+		this.categories = categories;
 	}
 
 	public Long getId() {
@@ -102,18 +112,18 @@ public class Station {
 		this.url = url;
 	}
 
-	public List<Genre> getGenres() {
-		return genres;
+	public List<Category> getCategories() {
+		return categories;
 	}
 
-	public void setGenres(List<Genre> genres) {
-		this.genres = genres;
+	public void setCategories(List<Category> categories) {
+		this.categories = categories;
 	}
 
 	@Override
 	public String toString() {
 		return "Station [id=" + id + ", title=" + title + ", callsign=" + callsign + ", frequency=" + frequency
-				+ ", description=" + description + ", url=" + url + ", genres=" + genres + "]";
+				+ ", description=" + description + ", url=" + url + "]";
 	}
 	
 	

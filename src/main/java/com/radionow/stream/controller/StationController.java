@@ -61,10 +61,10 @@ public class StationController {
 	}
 	
 	@PostMapping("/stations")
-	public ResponseEntity<Station> createTutorial(@RequestBody Station station) {
+	public ResponseEntity<Station> createStation(@RequestBody Station station) {
 		try {
 			Station _station = stationRepository
-					.save(new Station(station.getTitle(), station.getCallsign(), station.getFrequency(), station.getDescription(), station.getUrl(), null));
+					.save(new Station(station.getTitle(), station.getCallsign(), station.getFrequency(), station.getDescription(), station.getUrl()));
 			return new ResponseEntity<>(_station, HttpStatus.CREATED);
 		} catch (Exception e) {
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -109,10 +109,10 @@ public class StationController {
 
 	}
 
-	@GetMapping("/tutorials/callsign")
-	public ResponseEntity<List<Station>> findByCallsign() {
+	@GetMapping("/stations/callsign/{callsign}")
+	public ResponseEntity<List<Station>> findByCallsign(@PathVariable("callsign") String callsign) {
 		try {
-			List<Station> stations = stationRepository.findByCallsignContaining("KNHC");
+			List<Station> stations = stationRepository.findByCallsignContaining(callsign.toUpperCase());
 
 			if (stations.isEmpty()) {
 				return new ResponseEntity<>(HttpStatus.NO_CONTENT);
