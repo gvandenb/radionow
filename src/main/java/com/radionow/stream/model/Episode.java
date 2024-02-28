@@ -2,11 +2,22 @@ package com.radionow.stream.model;
 
 import java.util.Date;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -19,9 +30,18 @@ public class Episode {
 	
 	@Column(name = "title")
     private String title;
+	
+	@Column(name = "guid")
+    private String guid;
 
 	@Column(name = "pubDate")
 	private Date pubDate;
+	
+	@JsonIgnore
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "podcast_id", nullable = false)
+	@OnDelete(action = OnDeleteAction.CASCADE)
+	private Podcast podcast;
 
 	@Column(name = "duration")
 	private Long duration;
@@ -35,13 +55,22 @@ public class Episode {
 	@Column(length = 2048, name = "localFilePath")
 	private String localFilePath;
 	
+	@OneToOne(cascade = CascadeType.ALL)
+    @JoinTable(name = "episodes_statistics", 
+      joinColumns = 
+        { @JoinColumn(name = "episodes_id", referencedColumnName = "id") },
+      inverseJoinColumns = 
+        { @JoinColumn(name = "statistics_id", referencedColumnName = "id") })
+	private Statistic statistic = new Statistic(1L, StatisticType.EPISODE);
+	
 
 	public Episode() {}
 
-	public Episode(String title, Date pubDate, Long duration, String description, String imageURL,
+	public Episode(String title, String guid, Date pubDate, Long duration, String description, String imageURL,
 			String remoteURL, String localFilePath) {
 		super();
 		this.title = title;
+		this.guid = guid;
 		this.pubDate = pubDate;
 		this.duration = duration;
 		this.description = description;
@@ -49,11 +78,12 @@ public class Episode {
 		this.localFilePath = localFilePath;
 	}
 
-	public Episode(Long id, String title, Date pubDate, Long duration, String description,
+	public Episode(Long id, String title, String guid, Date pubDate, Long duration, String description,
 			String imageURL, String remoteURL, String localFilePath) {
 		super();
 		this.id = id;
 		this.title = title;
+		this.guid = guid;
 		this.pubDate = pubDate;
 		this.duration = duration;
 		this.description = description;
@@ -115,6 +145,30 @@ public class Episode {
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	public Podcast getPodcast() {
+		return podcast;
+	}
+
+	public void setPodcast(Podcast podcast) {
+		this.podcast = podcast;
+	}
+
+	public String getGuid() {
+		return guid;
+	}
+
+	public void setGuid(String guid) {
+		this.guid = guid;
+	}
+
+	public Statistic getStatistic() {
+		return statistic;
+	}
+
+	public void setStatistic(Statistic statistic) {
+		this.statistic = statistic;
 	}
 	
 	

@@ -64,8 +64,21 @@ public class StationController {
 	public ResponseEntity<Station> createStation(@RequestBody Station station) {
 		try {
 			Station _station = stationRepository
-					.save(new Station(station.getTitle(), station.getCallsign(), station.getFrequency(), station.getDescription(), station.getUrl()));
+					.save(new Station(station.getTitle(), station.getCallsign(), station.getFrequency(), station.getDescription(), station.getUrl(),
+							station.getCategories(), station.getStatistic()));
 			return new ResponseEntity<>(_station, HttpStatus.CREATED);
+		} catch (Exception e) {
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	@PostMapping("/stations/batch")
+	public ResponseEntity<String> createStationAll(@RequestBody List<Station> stationList) {
+		try {
+			
+			stationList.forEach(station -> stationRepository.save(station));
+			
+			return new ResponseEntity<>("OK", HttpStatus.CREATED);
 		} catch (Exception e) {
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -81,6 +94,8 @@ public class StationController {
 			_station.setDescription(station.getDescription());
 			_station.setFrequency(station.getFrequency());
 			_station.setCallsign(station.getCallsign());
+			_station.setCategories(station.getCategories());
+			_station.setStatistic(station.getStatistic());
 			_station.setUrl(station.getUrl());
 			return new ResponseEntity<>(stationRepository.save(_station), HttpStatus.OK);
 		} else {

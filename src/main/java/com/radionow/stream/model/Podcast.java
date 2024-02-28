@@ -11,7 +11,10 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -31,10 +34,6 @@ public class Podcast {
 	@Column(length = 4096, name = "description")
 	private String description;
 	
-	@Column(name = "categories")
-	@OneToMany(cascade = CascadeType.ALL)
-	private List<Category> categories = new ArrayList<Category>();
-	
 	@OneToMany(cascade = CascadeType.ALL)
 	@Column(name = "episodes")
 	@JsonIgnore
@@ -45,6 +44,19 @@ public class Podcast {
 	
 	@Column(length = 2048, name = "artworkURL")
 	private String artworkURL;
+	
+	@Column(name = "categories")
+	@OneToMany(cascade = CascadeType.ALL)
+	private List<Category> categories = new ArrayList<Category>();
+	
+	@OneToOne(cascade = CascadeType.ALL)
+    @JoinTable(name = "podcasts_statistics", 
+      joinColumns = 
+        { @JoinColumn(name = "podcasts_id", referencedColumnName = "id") },
+      inverseJoinColumns = 
+        { @JoinColumn(name = "statistics_id", referencedColumnName = "id") })
+	private Statistic statistic = new Statistic(1L, StatisticType.PODCAST);
+	
     
 	public Podcast() {}
 	
@@ -125,6 +137,17 @@ public class Podcast {
 	public void setCategories(List<Category> categories) {
 		this.categories = categories;
 	}
+
+	
+	public Statistic getStatistic() {
+		return statistic;
+	}
+
+
+	public void setStatistic(Statistic statistic) {
+		this.statistic = statistic;
+	}
+
 
 	@Override
 	public String toString() {

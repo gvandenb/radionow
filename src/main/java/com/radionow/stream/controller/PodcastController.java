@@ -6,6 +6,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -17,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.radionow.stream.dao.EpisodeRepository;
 import com.radionow.stream.dao.PodcastRepository;
 import com.radionow.stream.model.Episode;
 import com.radionow.stream.model.Category;
@@ -31,7 +36,6 @@ import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndEnclosure;
 
 
-
 @CrossOrigin(origins = "http://localhost:8081")
 @RestController
 @RequestMapping("/api")
@@ -39,6 +43,9 @@ public class PodcastController {
 	
 	@Autowired
 	PodcastRepository podcastRepository;
+	
+	@Autowired
+	EpisodeRepository episodeRepository;
 
 	//@SuppressWarnings("unchecked")
 	@GetMapping("/feed")
@@ -81,10 +88,12 @@ public class PodcastController {
 			
 			System.out.println(feed.getImage().getUrl());
 			podcast.setArtworkURL(feed.getImage().getUrl());
+			
+			
 			try {
 			
 				List<Episode> episodes = (List<Episode>) feed.getEntries().stream()
-		            .map(e -> createEpisode((SyndEntry) e))
+		            .map(e -> createEpisode((SyndEntry) e, podcast))
 		            .collect(Collectors.toList());
 		
 				podcast.setEpisodes(episodes);
@@ -120,11 +129,12 @@ public class PodcastController {
 		}
 	}
 	
-	private Episode createEpisode(SyndEntry s) {
+	private Episode createEpisode(SyndEntry s, Podcast podcast) {
 		Episode episode = new Episode ();
 		episode.setTitle(s.getTitle());
 		episode.setPubDate(s.getPublishedDate());
-		
+		//s.getUpdatedDate()
+		episode.setGuid(s.getUri());
 		
 		episode.setRemoteURL(((SyndEnclosure)s.getEnclosures().get(0)).getUrl());
 		episode.setDescription(s.getDescription().getValue());
@@ -134,6 +144,7 @@ public class PodcastController {
 		com.rometools.rome.feed.module.Module entryModule = s.getModule("http://www.itunes.com/dtds/podcast-1.0.dtd");
 	    EntryInformation entryInfo = (EntryInformation)entryModule;
 	    episode.setDuration(entryInfo.getDuration().getMilliseconds());
+		episode.setPodcast(podcast);
 		
 		return episode;
 	}
@@ -190,17 +201,27 @@ public class PodcastController {
 	}
 	
 	@GetMapping("/podcasts/{id}/episodes")
-	public ResponseEntity<List<Episode>> getEpisodesByPodcastId(@PathVariable("id") long id) {
+	public ResponseEntity<Page<Episode>> getEpisodesByPodcastId(
+			@PathVariable("id") long id,
+	        @RequestParam(defaultValue = "0") int page,
+	        @RequestParam(defaultValue = "20") int size
+			) {
 		
 		Optional<Podcast> podcastData = podcastRepository.findById(id);
 		Podcast podcast = podcastData.get();
+		
+		Pageable paging = PageRequest.of(page, size, Sort.by("pubDate").descending());
+		Page<Episode> episodeData = episodeRepository.findByPodcastId(id, paging);
 
-		if (podcastData.isPresent()) {
-			return new ResponseEntity<>(podcast.getEpisodes(), HttpStatus.OK);
+		System.out.println("Retrieved a page of episodes for podcast: " + id);
+		if (!episodeData.isEmpty()) {
+			return new ResponseEntity<>(episodeData, HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 		
 	}
+	
+	
 
 }

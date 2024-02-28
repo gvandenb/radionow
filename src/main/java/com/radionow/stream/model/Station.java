@@ -31,6 +31,15 @@ public class Station {
 	@Column(name = "categories")
 	@OneToMany(cascade = CascadeType.ALL)
 	private List<Category> categories = new ArrayList<Category>();
+	
+	@OneToOne(cascade = CascadeType.ALL)
+    @JoinTable(name = "stations_statistics", 
+      joinColumns = 
+        { @JoinColumn(name = "stations_id", referencedColumnName = "id") },
+      inverseJoinColumns = 
+        { @JoinColumn(name = "statistics_id", referencedColumnName = "id") })
+	private Statistic statistic = new Statistic(1L, StatisticType.STATION);
+	
 
 	public Station() {}
 	
@@ -54,7 +63,7 @@ public class Station {
 	}
 
 	public Station(String title, String callsign, String frequency, String description, String url,
-			List<Category> categories) {
+			List<Category> categories, Statistic statistic) {
 		super();
 		this.title = title;
 		this.callsign = callsign;
@@ -62,6 +71,7 @@ public class Station {
 		this.description = description;
 		this.url = url;
 		this.categories = categories;
+		this.statistic = statistic;
 	}
 
 	public Long getId() {
@@ -124,6 +134,14 @@ public class Station {
 	public String toString() {
 		return "Station [id=" + id + ", title=" + title + ", callsign=" + callsign + ", frequency=" + frequency
 				+ ", description=" + description + ", url=" + url + "]";
+	}	
+
+	public Statistic getStatistic() {
+		return statistic;
+	}
+
+	public void setStatistic(Statistic statistic) {
+		this.statistic = statistic;
 	}
 	
 	
