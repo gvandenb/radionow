@@ -12,8 +12,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.radionow.stream.controller.PodcastController;
-import com.radionow.stream.dao.PodcastRepository;
-import com.radionow.stream.dao.StationRepository;
+import com.radionow.stream.repository.PodcastRepository;
+import com.radionow.stream.repository.StationRepository;
 
 @WebMvcTest(PodcastController.class)
 public class PodcastControllerTests {

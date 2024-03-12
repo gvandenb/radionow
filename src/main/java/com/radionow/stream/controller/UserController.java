@@ -17,13 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.radionow.stream.dao.EpisodeRepository;
-import com.radionow.stream.dao.FavoriteEpisodeRepository;
-import com.radionow.stream.dao.FavoritePodcastRepository;
-import com.radionow.stream.dao.FavoriteStationRepository;
-import com.radionow.stream.dao.PodcastRepository;
-import com.radionow.stream.dao.StationRepository;
-import com.radionow.stream.dao.UserRepository;
 import com.radionow.stream.model.Episode;
 import com.radionow.stream.model.FavoriteEpisode;
 import com.radionow.stream.model.FavoritePodcast;
@@ -31,6 +24,14 @@ import com.radionow.stream.model.FavoriteStation;
 import com.radionow.stream.model.Podcast;
 import com.radionow.stream.model.Station;
 import com.radionow.stream.model.User;
+import com.radionow.stream.repository.FavoriteEpisodeRepository;
+import com.radionow.stream.repository.FavoritePodcastRepository;
+import com.radionow.stream.repository.FavoriteStationRepository;
+import com.radionow.stream.service.EpisodeService;
+import com.radionow.stream.service.PodcastService;
+import com.radionow.stream.service.StationService;
+import com.radionow.stream.service.UserSearchService;
+import com.radionow.stream.service.UserService;
 
 
 @CrossOrigin(origins = "http://localhost:8081")
@@ -39,30 +40,33 @@ import com.radionow.stream.model.User;
 public class UserController {
 
 	@Autowired
-	UserRepository userRepository;
+	UserService userService;
 	
 	@Autowired
-	EpisodeRepository episodeRepository;
+	EpisodeService episodeService;
 	
 	@Autowired
-	StationRepository stationRepository;
+	StationService stationService;
 	
 	@Autowired
-	PodcastRepository podcastRepository;
+	PodcastService podcastService;
 	
 	@Autowired
-	FavoriteEpisodeRepository favoriteEpisodeRepository;
+	FavoriteEpisodeRepository favoriteEpisodeRepository;  // TODO change to service impl
 	
 	@Autowired
-	FavoriteStationRepository favoriteStationRepository;
+	FavoriteStationRepository favoriteStationRepository;  // TODO change to service impl
 	
 	@Autowired
-	FavoritePodcastRepository favoritePodcastRepository;
+	FavoritePodcastRepository favoritePodcastRepository;  // TODO change to service impl
+	
+	@Autowired
+	UserSearchService userSearchService;
 	
 	@PostMapping("/users")
 	public ResponseEntity<User> createUser(@RequestBody User user) {
 		try {
-			User _user = userRepository
+			User _user = userService
 					.save(new User(user.getFirstName(), 
 							user.getLastName(), 
 							user.getEmail(), 
@@ -81,9 +85,9 @@ public class UserController {
 			List<User> users = new ArrayList<User>();
 
 			if (email == null)
-				userRepository.findAll().forEach(users::add);
+				userService.findAll().forEach(users::add);
 			else
-				userRepository.findByEmailContaining(email).forEach(users::add);
+				userService.findByEmailContaining(email).forEach(users::add);
 
 			if (users.isEmpty()) {
 				return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -98,7 +102,7 @@ public class UserController {
 	@GetMapping("/users/{id}")
 	public ResponseEntity<User> getUserById(@PathVariable("id") Long id) {
 		try {
-			 User user = userRepository.findById(id).get();
+			 User user = userService.findById(id).get();
 
 			 return new ResponseEntity<>(user, HttpStatus.OK);
 		} catch (Exception e) {
@@ -124,7 +128,7 @@ public class UserController {
 	public ResponseEntity<Station> setFavoriteStationUserIdStationId(@PathVariable("id") Long id, @PathVariable("sid") Long sid) {
 		try {
 			 FavoriteStation favorite = new FavoriteStation();
-			 Station station = stationRepository.findById(sid).get();
+			 Station station = stationService.findById(sid).get();
 			 favorite.setUserId(id);
 			 favorite.setStation(station);
 			 
@@ -166,13 +170,14 @@ public class UserController {
 	public ResponseEntity<Episode> setFavoriteEpisodeUserIdEpisodeId(@PathVariable("id") Long id, @PathVariable("guid") String guid) {
 		try {
 			 FavoriteEpisode favorite = new FavoriteEpisode();
-			 Episode episode = episodeRepository.findByGuid(guid);
+			 Episode episode = episodeService.findByGuid(guid);
 			 favorite.setUserId(id);
 			 favorite.setEpisode(episode);
-			 
+			 System.out.println("Saving favorite episode: " + favorite);
 			 FavoriteEpisode fe = favoriteEpisodeRepository.save(favorite);
 			 return new ResponseEntity<>(episode, HttpStatus.OK);
 		} catch (Exception e) {
+			System.out.println(e);
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -181,7 +186,7 @@ public class UserController {
 	public ResponseEntity<String> deleteFavoriteEpisodeUserIdEpisodeId(@PathVariable("id") Long id, @PathVariable("guid") String guid) {
 		try {
 			 
-			Episode episode = episodeRepository.findByGuid(guid);
+			Episode episode = episodeService.findByGuid(guid);
 			 FavoriteEpisode fe = favoriteEpisodeRepository.findByUserIdAndEpisodeId(id, episode.getId());
 			 
 			 favoriteEpisodeRepository.delete(fe);
@@ -210,7 +215,7 @@ public class UserController {
 		
 		try {
 			FavoritePodcast favorite = new FavoritePodcast();
-			Podcast podcast = podcastRepository.findById(pid).get();
+			Podcast podcast = podcastService.findById(pid).get();
 			favorite.setUserId(id);
 			favorite.setPodcast(podcast);
 			 

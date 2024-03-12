@@ -18,8 +18,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.radionow.stream.dao.StationRepository;
 import com.radionow.stream.model.Station;
+import com.radionow.stream.model.Statistic;
+import com.radionow.stream.model.Statistic.StatisticType;
+import com.radionow.stream.repository.StationRepository;
+import com.radionow.stream.service.StationService;
 
 @CrossOrigin(origins = "http://localhost:8081")
 @RestController
@@ -27,7 +30,7 @@ import com.radionow.stream.model.Station;
 public class StationController {
 
 	@Autowired
-	StationRepository stationRepository;
+	StationService stationService;
 
 	@GetMapping("/stations")
 	public ResponseEntity<List<Station>> getAllStations(@RequestParam(required = false) String title) {
@@ -35,9 +38,9 @@ public class StationController {
 			List<Station> stations = new ArrayList<Station>();
 
 			if (title == null)
-				stationRepository.findAll().forEach(stations::add);
+				stationService.findAll().forEach(stations::add);
 			else
-				stationRepository.findByTitleContaining(title).forEach(stations::add);
+				stationService.findByTitleContaining(title).forEach(stations::add);
 
 			if (stations.isEmpty()) {
 				return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -51,7 +54,7 @@ public class StationController {
 
 	@GetMapping("/stations/{id}")
 	public ResponseEntity<Station> getStationById(@PathVariable("id") long id) {
-		Optional<Station> stationData = stationRepository.findById(id);
+		Optional<Station> stationData = stationService.findById(id);
 
 		if (stationData.isPresent()) {
 			return new ResponseEntity<>(stationData.get(), HttpStatus.OK);
@@ -63,7 +66,7 @@ public class StationController {
 	@PostMapping("/stations")
 	public ResponseEntity<Station> createStation(@RequestBody Station station) {
 		try {
-			Station _station = stationRepository
+			Station _station = stationService
 					.save(new Station(station.getTitle(), station.getCallsign(), station.getFrequency(), station.getDescription(), station.getUrl(),
 							station.getCategories(), station.getStatistic()));
 			return new ResponseEntity<>(_station, HttpStatus.CREATED);
@@ -76,7 +79,7 @@ public class StationController {
 	public ResponseEntity<String> createStationAll(@RequestBody List<Station> stationList) {
 		try {
 			
-			stationList.forEach(station -> stationRepository.save(station));
+			stationList.forEach(station -> stationService.save(station));
 			
 			return new ResponseEntity<>("OK", HttpStatus.CREATED);
 		} catch (Exception e) {
@@ -84,9 +87,47 @@ public class StationController {
 		}
 	}
 
+	@GetMapping("/stations/{id}/views")
+	public ResponseEntity<Long> fetchStationViews(@PathVariable("id") long id) {
+		Optional<Station> stationData = stationService.findById(id);
+		Long viewCount = 1L;
+		if (stationData.isPresent()) {
+			Station station = stationData.get();
+			if (station.getStatistic() != null) {
+				viewCount = station.getStatistic().getViews();
+			}
+			
+			return new ResponseEntity<>(viewCount, HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+	}
+	
+	@PutMapping("/stations/{id}/views")
+	public ResponseEntity<String> updateStationViews(@PathVariable("id") long id) {
+		Optional<Station> stationData = stationService.findById(id);
+
+		if (stationData.isPresent()) {
+			Station station = stationData.get();
+			Statistic stat = station.getStatistic();
+			if (stat != null) {
+				stat.setViews(stat.getViews() + 1);
+			}
+			else {
+				stat = new Statistic(1L, StatisticType.STATION);
+			}
+			station.setStatistic(stat);
+			stationService.save(station);
+			
+			return new ResponseEntity<>("Ok", HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+	}
+	
 	@PutMapping("/stations/{id}")
-	public ResponseEntity<Station> updateTutorial(@PathVariable("id") long id, @RequestBody Station station) {
-		Optional<Station> stationData = stationRepository.findById(id);
+	public ResponseEntity<Station> updateStation(@PathVariable("id") long id, @RequestBody Station station) {
+		Optional<Station> stationData = stationService.findById(id);
 
 		if (stationData.isPresent()) {
 			Station _station = stationData.get();
@@ -97,7 +138,7 @@ public class StationController {
 			_station.setCategories(station.getCategories());
 			_station.setStatistic(station.getStatistic());
 			_station.setUrl(station.getUrl());
-			return new ResponseEntity<>(stationRepository.save(_station), HttpStatus.OK);
+			return new ResponseEntity<>(stationService.save(_station), HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
@@ -106,7 +147,7 @@ public class StationController {
 	@DeleteMapping("/stations/{id}")
 	public ResponseEntity<HttpStatus> deleteStation(@PathVariable("id") long id) {
 		try {
-			stationRepository.deleteById(id);
+			stationService.deleteById(id);
 			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -116,7 +157,7 @@ public class StationController {
 	@DeleteMapping("/stations")
 	public ResponseEntity<HttpStatus> deleteAllStations() {
 		try {
-			stationRepository.deleteAll();
+			stationService.deleteAll();
 			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -127,7 +168,7 @@ public class StationController {
 	@GetMapping("/stations/callsign/{callsign}")
 	public ResponseEntity<List<Station>> findByCallsign(@PathVariable("callsign") String callsign) {
 		try {
-			List<Station> stations = stationRepository.findByCallsignContaining(callsign.toUpperCase());
+			List<Station> stations = stationService.findByCallsignContaining(callsign.toUpperCase());
 
 			if (stations.isEmpty()) {
 				return new ResponseEntity<>(HttpStatus.NO_CONTENT);

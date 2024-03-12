@@ -1,4 +1,4 @@
-package com.radionow.stream.dao;
+package com.radionow.stream.repository;
 
 import java.util.List;
 

@@ -24,8 +24,8 @@ import org.springframework.util.MultiValueMap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.radionow.stream.controller.StationController;
-import com.radionow.stream.dao.StationRepository;
 import com.radionow.stream.model.Station;
+import com.radionow.stream.repository.StationRepository;
 
 @WebMvcTest(StationController.class)
 public class StationControllerTests {

@@ -60,11 +60,11 @@ public class Statistic {
 		this.statisticType = statisticType;
 	}
 	
-	
+	public static enum StatisticType {
+		 USER, PODCAST, STATION, EPISODE
+		}
 	
 	
 }
 
-enum StatisticType {
-	 USER, PODCAST, STATION, EPISODE
-	}
+

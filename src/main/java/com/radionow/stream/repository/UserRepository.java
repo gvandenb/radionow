@@ -1,4 +1,4 @@
-package com.radionow.stream.dao;
+package com.radionow.stream.repository;
 
 import java.util.List;
 
@@ -8,6 +8,7 @@ import com.radionow.stream.model.User;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
+	User getUserById(Long id);
 	List<User> findByEmailContaining(String email);
 
 }

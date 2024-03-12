@@ -3,6 +3,10 @@ package com.radionow.stream.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.data.elasticsearch.annotations.Document;
+
+import com.radionow.stream.model.Statistic.StatisticType;
+
 import jakarta.persistence.*; // for Spring Boot 3
 
 @Entity
@@ -38,7 +42,7 @@ public class Station {
         { @JoinColumn(name = "stations_id", referencedColumnName = "id") },
       inverseJoinColumns = 
         { @JoinColumn(name = "statistics_id", referencedColumnName = "id") })
-	private Statistic statistic = new Statistic(1L, StatisticType.STATION);
+	private Statistic statistic;
 	
 
 	public Station() {}

@@ -3,11 +3,15 @@ package com.radionow.stream.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.data.elasticsearch.annotations.Document;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.radionow.stream.model.Statistic.StatisticType;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -34,16 +38,15 @@ public class Podcast {
 	@Column(length = 4096, name = "description")
 	private String description;
 	
-	@OneToMany(cascade = CascadeType.ALL)
-	@Column(name = "episodes")
-	@JsonIgnore
-	private List<Episode> episodes;
-	
 	@Column(length = 2048, name = "feedURL")
 	private String feedURL;
 	
 	@Column(length = 2048, name = "artworkURL")
 	private String artworkURL;
+	
+	@JsonIgnore
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "podcast", cascade = CascadeType.ALL)
+	private List<Episode> episodes = new ArrayList<Episode>();
 	
 	@Column(name = "categories")
 	@OneToMany(cascade = CascadeType.ALL)
@@ -55,20 +58,20 @@ public class Podcast {
         { @JoinColumn(name = "podcasts_id", referencedColumnName = "id") },
       inverseJoinColumns = 
         { @JoinColumn(name = "statistics_id", referencedColumnName = "id") })
-	private Statistic statistic = new Statistic(1L, StatisticType.PODCAST);
+	private Statistic statistic;
 	
     
 	public Podcast() {}
 	
 
-	public Podcast(String title, String author, String description, List<Category> categories, List<Episode> episodes,
+	public Podcast(String title, String author, String description, List<Episode> episodes, List<Category> categories,
 			String feedURL, String artworkURL) {
 		super();
 		this.title = title;
 		this.author = author;
 		this.description = description;
-		this.categories = categories;
 		this.episodes = episodes;
+		this.categories = categories;
 		this.feedURL = feedURL;
 		this.artworkURL = artworkURL;
 	}
@@ -106,14 +109,6 @@ public class Podcast {
 		this.description = description;
 	}
 
-	public List<Episode> getEpisodes() {
-		return episodes;
-	}
-
-	public void setEpisodes(List<Episode> episodes) {
-		this.episodes = episodes;
-	}
-
 	public String getFeedURL() {
 		return feedURL;
 	}
@@ -148,11 +143,21 @@ public class Podcast {
 		this.statistic = statistic;
 	}
 
+	
+	public List<Episode> getEpisodes() {
+		return episodes;
+	}
+
+
+	public void setEpisodes(List<Episode> episodes) {
+		this.episodes = episodes;
+	}
+
 
 	@Override
 	public String toString() {
 		return "Podcast [id=" + id + ", title=" + title + ", author=" + author + ", description=" + description
-				+ ", categories=" + categories + ", episodes=" + episodes + ", feedURL=" + feedURL + ", artworkURL="
+				+ ", categories=" + categories + ", feedURL=" + feedURL + ", artworkURL="
 				+ artworkURL + "]";
 	}
 	

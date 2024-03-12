@@ -1,4 +1,4 @@
-package com.radionow.stream.dao;
+package com.radionow.stream.repository;
 
 import java.util.List;
 
@@ -19,6 +19,6 @@ public interface EpisodeRepository extends JpaRepository<Episode, Long> {
     Episode findByGuid(String guid);
     
     @Transactional
-    void deleteByPodcastId(long podcastId);
+    void deleteEpisodeByPodcastId(long podcastId);
 
 }

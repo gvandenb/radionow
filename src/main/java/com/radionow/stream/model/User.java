@@ -3,7 +3,10 @@ package com.radionow.stream.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.data.elasticsearch.annotations.Document;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.radionow.stream.model.Statistic.StatisticType;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -42,7 +45,7 @@ public class User {
         { @JoinColumn(name = "users_id", referencedColumnName = "id") },
       inverseJoinColumns = 
         { @JoinColumn(name = "statistics_id", referencedColumnName = "id") })
-	private Statistic statistic = new Statistic(1L, StatisticType.USER);
+	private Statistic statistic;
 	
 	@JsonIgnore
 	@Column(name = "devices")
