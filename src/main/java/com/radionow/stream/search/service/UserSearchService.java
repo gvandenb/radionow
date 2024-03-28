@@ -1,4 +1,4 @@
-package com.radionow.stream.service;
+package com.radionow.stream.search.service;
 
 import com.radionow.stream.search.model.SearchUser;
 

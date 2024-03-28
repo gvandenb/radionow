@@ -19,6 +19,12 @@ public class Statistic {
 	@Column(name = "views")
 	private Long views;
 	
+	@Column(name = "rb_clicks")
+	private Integer rbClicks;
+	
+	@Column(name = "rb_votes")
+	private Integer rbVotes;
+	
 	// clicked on a station
 	@Column(name = "statisticType")
 	private StatisticType  statisticType;
@@ -60,6 +66,25 @@ public class Statistic {
 		this.statisticType = statisticType;
 	}
 	
+	
+	public Integer getRbClicks() {
+		return rbClicks;
+	}
+
+	public void setRbClicks(Integer rbClicks) {
+		this.rbClicks = rbClicks;
+	}
+
+	public Integer getRbVotes() {
+		return rbVotes;
+	}
+
+	public void setRbVotes(Integer rbVotes) {
+		this.rbVotes = rbVotes;
+	}
+
+
+
 	public static enum StatisticType {
 		 USER, PODCAST, STATION, EPISODE
 		}

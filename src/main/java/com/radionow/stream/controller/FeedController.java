@@ -1,8 +1,13 @@
 package com.radionow.stream.controller;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,19 +21,30 @@ import org.springframework.web.bind.annotation.RestController;
 import com.radionow.stream.model.Category;
 import com.radionow.stream.model.Episode;
 import com.radionow.stream.model.Podcast;
+import com.radionow.stream.model.Station;
+import com.radionow.stream.model.Statistic;
+import com.radionow.stream.model.Statistic.StatisticType;
 import com.radionow.stream.search.model.SearchCategory;
 import com.radionow.stream.search.model.SearchEpisode;
 import com.radionow.stream.search.model.SearchPodcast;
-import com.radionow.stream.service.EpisodeSearchService;
+import com.radionow.stream.search.service.EpisodeSearchService;
+import com.radionow.stream.search.service.PodcastSearchService;
 import com.radionow.stream.service.EpisodeService;
-import com.radionow.stream.service.PodcastSearchService;
 import com.radionow.stream.service.PodcastService;
+import com.radionow.stream.service.StationService;
 import com.radionow.stream.util.FetchFeed;
 import com.rometools.modules.itunes.EntryInformation;
 import com.rometools.modules.itunes.FeedInformation;
 import com.rometools.rome.feed.synd.SyndEnclosure;
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
+
+import de.sfuhrm.radiobrowser4j.AdvancedSearch;
+import de.sfuhrm.radiobrowser4j.ConnectionParams;
+import de.sfuhrm.radiobrowser4j.EndpointDiscovery;
+import de.sfuhrm.radiobrowser4j.FieldName;
+import de.sfuhrm.radiobrowser4j.ListParameter;
+import de.sfuhrm.radiobrowser4j.RadioBrowser;
 
 @CrossOrigin(origins = "http://localhost:8081")
 @RestController
@@ -42,6 +58,9 @@ public class FeedController {
 	EpisodeService episodeService;
 	
 	@Autowired
+	StationService stationService;
+	
+	@Autowired
 	PodcastSearchService podcastSearchService;
 	
 	@Autowired
@@ -51,19 +70,15 @@ public class FeedController {
 	public ResponseEntity<Podcast> fetchPodcasts(@RequestParam(required = true) String url) {
 		
 		try {
-			Boolean isNewPodcast = false;
 			Podcast podcast = new Podcast();
-			SearchPodcast searchPodcast = new SearchPodcast();
 			Podcast dbPodcast = null;
 
 			SyndFeed feed = null;
-			SyndFeed searchFeed = null;
 			System.out.println("Parsing feed");
 
 			try {
 				
 				feed = FetchFeed.readFeed(url);
-				searchFeed = FetchFeed.readFeed(url);
 
 				com.rometools.rome.feed.module.Module feedModule = feed.getModule("http://www.itunes.com/dtds/podcast-1.0.dtd");
 				System.out.println("Created feed module");
@@ -90,7 +105,7 @@ public class FeedController {
 				if (author == null) {
 					author = feed.getCopyright();
 				}
-				System.out.println("Author: " + feedInfo.getAuthor());
+				//System.out.println("Author: " + feedInfo.getAuthor());
 
 				podcast.setAuthor(author);
 			
@@ -110,10 +125,7 @@ public class FeedController {
 				dbPodcast = podcastService.findByTitle(podcast.getTitle());
 
 				if (dbPodcast == null) {
-					isNewPodcast = true;
 					dbPodcast  = podcastService.save(podcast);
-					SearchPodcast sp = createSearchPodcast(dbPodcast);
-					podcastSearchService.save(sp);
 				}
 				else {
 					// update podcast
@@ -142,30 +154,15 @@ public class FeedController {
 				List<Episode> episodes = (List<Episode>) feed.getEntries().stream()
 		            .map(e -> createEpisode((SyndEntry) e, pod))
 		            .collect(Collectors.toList());
-		
+				podcastService.save(pod);
+
 				System.out.println("Successfully set episodes: " + episodes.size());
 
 			}
 			catch(Exception ex) {
 				ex.printStackTrace();
 			}
-			/*
-			try {
-				final Podcast dbPod = dbPodcast;
-				List<SearchEpisode> searchEpisodes = (List<SearchEpisode>) searchFeed.getEntries().stream()
-		            .map(e -> createSearchEpisode((SyndEntry) e, dbPod))
-		            .collect(Collectors.toList());
-				System.out.println("Successfully set search episodes: " + searchEpisodes.size());
-
-				return new ResponseEntity<>(dbPod, HttpStatus.CREATED);
-
-			}
-			catch(Exception ex) {
-				ex.printStackTrace();
-				return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-
-			}
-			*/
+			
 			return new ResponseEntity<>(dbPodcast, HttpStatus.CREATED);
 
 		} catch (Exception e) {
@@ -173,44 +170,140 @@ public class FeedController {
 		}
 	}
 	
-	@GetMapping("/feed/rebuild/index/podcasts")
-	public ResponseEntity<String> rebuildSearchPodcastIndex() {
-		Long startTime = System.currentTimeMillis();
-		System.out.println("Started indexing podcasts: " + startTime);
-		List<Podcast> podcasts = new ArrayList<Podcast>();
-		podcasts = podcastService.findAll();
-		List<SearchPodcast> searchPodcasts = podcasts.stream()
-	            .map(e -> createSearchPodcast((Podcast) e))
-	            .collect(Collectors.toList());
-		podcastSearchService.saveAll(searchPodcasts);
-		Long endTime = System.currentTimeMillis();
-		System.out.println("Finished indexing podcasts: " + ((startTime - endTime)/1000) + " seconds");
-		String response = "Indexed " + searchPodcasts.size() + " podcasts in " + (startTime - endTime)/1000 + " seconds";
+	@GetMapping("/feed/stations")
+	public ResponseEntity<String> fetchStations() {
+		String  response = "";
+		List<Station> stationList = new ArrayList<Station>();
+	
+		// discover endpoint
+		Optional<String> endpoint = null;
+		try {
+			endpoint = new EndpointDiscovery("streamer/1.0").discover();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		if (endpoint != null) {
+			// build instance
+			RadioBrowser radioBrowser = new RadioBrowser(
+			    ConnectionParams.builder().apiUrl(endpoint.get()).userAgent("Demo agent/1.0").timeout(50000).build());
+	
+			
+			AdvancedSearch advancedSearch = AdvancedSearch.builder()
+					.countryCode("US").build();
+			
+	        Stream<de.sfuhrm.radiobrowser4j.Station> stream = radioBrowser.listStationsWithAdvancedSearch(advancedSearch);
+	        
+	        List<Station> stations = stream
+	        		//.limit(2)
+		            .map(e -> updateStation((de.sfuhrm.radiobrowser4j.Station) e))
+		            .collect(Collectors.toList());
+	        
+			response = "Inserted " + stations.size() + " US stations.\n";
+			
+			Stream<de.sfuhrm.radiobrowser4j.Station> topClickStream = radioBrowser.listTopClickStations().limit(5000);
+			List<Station> topClickStations = topClickStream
+	        		//.limit(2)
+		            .map(e -> updateStation((de.sfuhrm.radiobrowser4j.Station) e))
+		            .collect(Collectors.toList());
+			
+			response += "Inserted " + topClickStations.size() + " Top Click stations.\n";
+
+			
+			Stream<de.sfuhrm.radiobrowser4j.Station> topVoteStream = radioBrowser.listTopVoteStations().limit(5000);
+			List<Station> topVoteStations = topVoteStream
+	        		//.limit(2)
+		            .map(e -> updateStation((de.sfuhrm.radiobrowser4j.Station) e))
+		            .collect(Collectors.toList());
+			
+			response += "Inserted " + topVoteStations.size() + " Top Vote stations.\n";
+
+			/*
+	        Map<String, Integer> countries = radioBrowser.listCountries();
+
+			// use click count order for getting top 100 from each country in country list
+	        ListParameter listParameter = ListParameter.create();
+	        listParameter.order(FieldName.CLICKCOUNT);
+	        */
+			
+		}
+		else {
+			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+		}
+		
 		return new ResponseEntity<>(response, HttpStatus.CREATED);
 	}
 	
-	@GetMapping("/feed/rebuild/index/episodes")
-	public ResponseEntity<String> rebuildSearchEpisodeIndex() {
-		Long startTime = System.currentTimeMillis();
-		System.out.println("Started indexing episodes: " + startTime);
-		List<Episode> episodes = new ArrayList<Episode>();
-		episodes = episodeService.findAll();
-		List<SearchEpisode> searchEpisodes = episodes.stream()
-	            .map(e -> createSearchEpisode((Episode) e))
-	            .collect(Collectors.toList());
-		episodeSearchService.saveAll(searchEpisodes);
-		Long endTime = System.currentTimeMillis();
-		System.out.println("Finished indexing episodes: " + ((startTime - endTime)/1000) + " seconds");
-		String response = "Indexed " + searchEpisodes.size() + " episodes in " + (startTime - endTime)/1000 + " seconds";
-		return new ResponseEntity<>(response, HttpStatus.CREATED);		
+	private Station updateStation(de.sfuhrm.radiobrowser4j.Station s) {
+		Station updatedStation = new Station();
+		Station dbStation = stationService.findByGuid(s.getStationUUID().toString());
+		
+		if (dbStation == null) {
+			Station station = new Station();
+
+			station.setTitle(s.getName());
+			station.setState(s.getState());
+			station.setCountry(s.getCountryCode());
+			station.setUrl(s.getUrl());
+			station.setGuid(s.getStationUUID().toString());
+			station.setLanguage(s.getLanguage());
+			station.setImageUrl(s.getFavicon());
+			
+			Statistic stats = new Statistic();
+			//stats.setViews(100L);
+			stats.setRbClicks(s.getClickcount());	
+			stats.setRbVotes(s.getVotes());
+			stats.setStatisticType(StatisticType.STATION);
+			station.setStatistic(stats);
+			
+			updatedStation = stationService.save(station);
+		}
+		else {
+			Statistic stats = dbStation.getStatistic();
+			if (stats == null) {
+				stats = new Statistic();
+				stats.setViews(100L);
+			}
+			else {
+				if (stats.getViews() == null) {
+					stats.setViews(100L);
+				}
+				else {
+					stats.setViews(stats.getViews() + 100L);
+
+				}
+			}
+			
+			stats.setRbClicks(s.getClickcount());	
+			stats.setRbVotes(s.getVotes());
+			stats.setStatisticType(StatisticType.STATION);
+			dbStation.setStatistic(stats);
+			
+			updatedStation = stationService.save(dbStation);
+
+		}
+
+		// TODO: make categories update idempotent
+		//List<Category> categories = s.getTagList().stream().map(e -> new Category(e)).collect(Collectors.toList());
+		//station.setCategories(categories);		
+
+		return updatedStation;
 	}
 	
 	private Episode createEpisode(SyndEntry s, Podcast podcast) {
 		Episode episode = new Episode ();
+		
 		if (!s.getEnclosures().isEmpty()) {
 			episode.setTitle(s.getTitle());
 			episode.setPubDate(s.getPublishedDate());
 			//s.getUpdatedDate()
+			if (podcast.getLastPubDate() == null) {
+				podcast.setLastPubDate(episode.getPubDate());
+			}
+			if (episode.getPubDate() != null && episode.getPubDate().after(podcast.getLastPubDate())) {
+				podcast.setLastPubDate(episode.getPubDate());
+			}
 			episode.setGuid(s.getUri());
 				
 			episode.setRemoteURL(((SyndEnclosure)s.getEnclosures().get(0)).getUrl());
@@ -222,13 +315,7 @@ public class FeedController {
 		    //episode.setDuration(entryInfo.getDuration().getMilliseconds());
 		    // duration
 		    Long duration = 0L; 
-		    if (s.getEnclosures() != null) {
-		    	SyndEnclosure se = s.getEnclosures().get(0);
-		    	if (se != null) {
-		    		duration = se.getLength();
-		    	}
-		    }
-		    if (duration == null || duration == 0) {
+		    if (entryInfo != null) {
 		    	if (entryInfo.getDuration() != null) {
 		    		duration = entryInfo.getDuration().getMilliseconds();
 		    	}
@@ -246,39 +333,5 @@ public class FeedController {
 		return episode;
 	}
 		
-	private SearchEpisode createSearchEpisode(Episode ep) {
-		SearchEpisode episode = new SearchEpisode ();
-		try {
-			episode.setTitle(ep.getTitle());
-			episode.setPubDate(ep.getPubDate());
-			episode.setGuid(ep.getGuid());
-			episode.setRemoteURL(ep.getRemoteURL());
-			episode.setDescription(ep.getDescription());
-		    episode.setDuration(ep.getDuration());
-			episode.setPodcastId(ep.getPodcast().getId());
-		}
-		catch(Exception ex) {
-			System.out.println("Episode id, guid, title: " + ep.getId() + "::" + ep.getGuid() + "::" + ep.getTitle());
-			ex.printStackTrace();
-		}
-		return episode;
-	}
-	
-	private SearchPodcast createSearchPodcast(Podcast podcast) {
-		SearchPodcast searchPodcast = new SearchPodcast();
-		searchPodcast.setAuthor(podcast.getAuthor());
-		searchPodcast.setTitle(podcast.getTitle());
-		searchPodcast.setDescription(podcast.getDescription());
-		searchPodcast.setFeedURL(podcast.getFeedURL());
-		searchPodcast.setArtworkURL(podcast.getArtworkURL());
-		searchPodcast.setPodcastId(podcast.getId());
-		for(Category category : podcast.getCategories()) {
-			SearchCategory sc = new SearchCategory();
-			sc.setName(category.getName());
-			searchPodcast.getCategories().add(sc);
-		}
-		
-		return searchPodcast;
-	
-	}
+
 }

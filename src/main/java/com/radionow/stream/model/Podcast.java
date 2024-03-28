@@ -1,6 +1,7 @@
 package com.radionow.stream.model;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.data.elasticsearch.annotations.Document;
@@ -59,6 +60,9 @@ public class Podcast {
       inverseJoinColumns = 
         { @JoinColumn(name = "statistics_id", referencedColumnName = "id") })
 	private Statistic statistic;
+	
+	@Column(name = "lastPubDate")
+	private Date lastPubDate;
 	
     
 	public Podcast() {}
@@ -151,6 +155,16 @@ public class Podcast {
 
 	public void setEpisodes(List<Episode> episodes) {
 		this.episodes = episodes;
+	}
+
+
+	public Date getLastPubDate() {
+		return lastPubDate;
+	}
+
+
+	public void setLastPubDate(Date lastPubDate) {
+		this.lastPubDate = lastPubDate;
 	}
 
 

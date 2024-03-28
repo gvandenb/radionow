@@ -13,6 +13,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,13 +25,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.radionow.stream.model.Episode;
 import com.radionow.stream.model.Podcast;
-
+import com.radionow.stream.model.Station;
+import com.radionow.stream.model.Statistic;
+import com.radionow.stream.model.Statistic.StatisticType;
 import com.radionow.stream.search.model.SearchEpisode;
 import com.radionow.stream.search.model.SearchPodcast;
-
-import com.radionow.stream.service.EpisodeSearchService;
+import com.radionow.stream.search.service.EpisodeSearchService;
+import com.radionow.stream.search.service.PodcastSearchService;
 import com.radionow.stream.service.EpisodeService;
-import com.radionow.stream.service.PodcastSearchService;
 import com.radionow.stream.service.PodcastService;
 
 
@@ -46,21 +48,25 @@ public class PodcastController {
 	EpisodeService episodeService;
 
 	@GetMapping("/podcasts")
-	public ResponseEntity<List<Podcast>> getAllPodcastss(@RequestParam(required = false) String title) {
+	public ResponseEntity<List<Podcast>> getAllPodcastss(
+			@RequestParam(defaultValue = "0") int page,
+	        @RequestParam(defaultValue = "10") int size) {
 		try {
+			
 			List<Podcast> podcasts = new ArrayList<Podcast>();
 
-			if (title == null)
-				podcastService.findAll().forEach(podcasts::add);
-			else
-				podcastService.findByTitleContaining(title).forEach(podcasts::add);
+			
+			//Pageable paging = PageRequest.of(page, size, Sort.by("statistic.views").descending());
+			Pageable paging = PageRequest.of(page, size, Sort.by("lastPubDate").descending());
+			Page<Podcast> podcastData = podcastService.findAll(paging);
 
-			if (podcasts.isEmpty()) {
+			if (podcastData.isEmpty()) {
 				return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 			}
 
-			return new ResponseEntity<>(podcasts, HttpStatus.OK);
+			return new ResponseEntity<>(podcastData.getContent(), HttpStatus.OK);
 		} catch (Exception e) {
+			e.printStackTrace();
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -71,6 +77,18 @@ public class PodcastController {
 
 		if (podcastData.isPresent()) {
 			return new ResponseEntity<>(podcastData.get(), HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+	}
+	
+	@DeleteMapping("/podcasts/{id}")
+	public ResponseEntity<String> deletePodcastById(@PathVariable("id") long id) {
+		Optional<Podcast> podcastData = podcastService.findById(id);
+
+		if (podcastData.isPresent()) {
+			podcastService.deletePodcastById(id);
+			return new ResponseEntity<>("Ok", HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
@@ -124,6 +142,44 @@ public class PodcastController {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 		
+	}
+	
+	@GetMapping("/podcasts/{id}/views")
+	public ResponseEntity<Long> fetchPodcastViews(@PathVariable("id") long id) {
+		Optional<Podcast> podcastData = podcastService.findById(id);
+		Long viewCount = 1L;
+		if (podcastData.isPresent()) {
+			Podcast podcast = podcastData.get();
+			if (podcast.getStatistic() != null) {
+				viewCount = podcast.getStatistic().getViews();
+			}
+			
+			return new ResponseEntity<>(viewCount, HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+	}
+	
+	@PutMapping("/podcasts/{id}/views")
+	public ResponseEntity<String> updatePodcastViews(@PathVariable("id") long id) {
+		Optional<Podcast> podcastData = podcastService.findById(id);
+
+		if (podcastData.isPresent()) {
+			Podcast podcast = podcastData.get();
+			Statistic stat = podcast.getStatistic();
+			if (stat != null) {
+				stat.setViews(stat.getViews() + 1);
+			}
+			else {
+				stat = new Statistic(1L, StatisticType.STATION);
+			}
+			podcast.setStatistic(stat);
+			podcastService.save(podcast);
+			
+			return new ResponseEntity<>("Ok", HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
 	}
 	
 	

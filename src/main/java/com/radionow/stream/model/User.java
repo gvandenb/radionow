@@ -11,11 +11,13 @@ import com.radionow.stream.model.Statistic.StatisticType;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
@@ -50,6 +52,12 @@ public class User {
 	@JsonIgnore
 	@Column(name = "devices")
 	private List<String> devices = new ArrayList<String>();
+	
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "userId", cascade = CascadeType.ALL)	
+	private List<UserView> views = new ArrayList<UserView>();
+	
+	@Column(name = "searchTerms")
+	private List<String> searchTerms = new ArrayList<String>();
 	
 	public User() {}
 
@@ -117,6 +125,22 @@ public class User {
 
 	public void setStatistic(Statistic statistic) {
 		this.statistic = statistic;
+	}
+
+	public List<UserView> getViews() {
+		return views;
+	}
+
+	public void setViews(List<UserView> views) {
+		this.views = views;
+	}
+
+	public List<String> getSearchTerms() {
+		return searchTerms;
+	}
+
+	public void setSearchTerms(List<String> searchTerms) {
+		this.searchTerms = searchTerms;
 	}
 	
 	

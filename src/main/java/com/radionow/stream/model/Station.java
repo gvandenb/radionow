@@ -2,6 +2,7 @@ package com.radionow.stream.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.data.elasticsearch.annotations.Document;
 
@@ -17,7 +18,7 @@ public class Station {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long id;
 	
-	@Column(name = "title")
+	@Column(length = 2048, name = "title")
 	private String title;
 	
 	@Column(name = "callsign")
@@ -26,10 +27,13 @@ public class Station {
 	@Column(name = "frequency")
 	private String frequency;
 	
-	@Column(name = "description")
+	@Column(length = 4096, name = "description")
 	private String description;
 	
-	@Column(length = 2048, name = "url")
+	@Column(name = "guid")
+	private String guid = UUID.randomUUID().toString();
+	
+	@Column(length = 4096, name = "url")
 	private String url;
 	
 	@Column(name = "categories")
@@ -44,6 +48,20 @@ public class Station {
         { @JoinColumn(name = "statistics_id", referencedColumnName = "id") })
 	private Statistic statistic;
 	
+	@Column(name = "city")
+	private String city;
+	
+	@Column(name = "state")
+	private String state;
+	
+	@Column(name = "country")
+	private String country;
+	
+	@Column(length = 4096, name = "imageUrl")
+	private String imageUrl;
+	
+	@Column(name = "language")
+	private String language;
 
 	public Station() {}
 	
@@ -132,12 +150,6 @@ public class Station {
 
 	public void setCategories(List<Category> categories) {
 		this.categories = categories;
-	}
-
-	@Override
-	public String toString() {
-		return "Station [id=" + id + ", title=" + title + ", callsign=" + callsign + ", frequency=" + frequency
-				+ ", description=" + description + ", url=" + url + "]";
 	}	
 
 	public Statistic getStatistic() {
@@ -147,6 +159,64 @@ public class Station {
 	public void setStatistic(Statistic statistic) {
 		this.statistic = statistic;
 	}
+
+	public String getGuid() {
+		return guid;
+	}
+
+	public void setGuid(String guid) {
+		this.guid = guid;
+	}
+
+	public String getCity() {
+		return city;
+	}
+
+	public void setCity(String city) {
+		this.city = city;
+	}
+
+	public String getState() {
+		return state;
+	}
+
+	public void setState(String state) {
+		this.state = state;
+	}
+
+	public String getCountry() {
+		return country;
+	}
+
+	public void setCountry(String country) {
+		this.country = country;
+	}
+
+	public String getImageUrl() {
+		return imageUrl;
+	}
+
+	public void setImageUrl(String imageUrl) {
+		this.imageUrl = imageUrl;
+	}
+
+	public String getLanguage() {
+		return language;
+	}
+
+	public void setLanguage(String language) {
+		this.language = language;
+	}
+
+	@Override
+	public String toString() {
+		return "Station [id=" + id + ", title=" + title + ", callsign=" + callsign + ", frequency=" + frequency
+				+ ", description=" + description + ", guid=" + guid + ", url=" + url + ", categories=" + categories
+				+ ", statistic=" + statistic + ", city=" + city + ", state=" + state + ", country=" + country
+				+ ", imageUrl=" + imageUrl + ", language=" + language + "]";
+	}
+
+	
 	
 	
 

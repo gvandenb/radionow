@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.radionow.stream.model.Station;
@@ -15,6 +17,7 @@ public class StationServiceImpl implements StationService {
     @Autowired
     private StationRepository stationRepository;
 
+    @Override
     public List<Station> findAll() {
     	return stationRepository.findAll();
     }
@@ -57,5 +60,23 @@ public class StationServiceImpl implements StationService {
 	public void deleteAll() {
 		// TODO Auto-generated method stub
 		stationRepository.deleteAll();
+	}
+
+	@Override
+	public Object saveAll(List<Station> stations) {
+		// TODO Auto-generated method stub
+		return stationRepository.saveAll(stations);
+	}
+
+	@Override
+	public Page<Station> findAll(Pageable paging) {
+		// TODO Auto-generated method stub
+    	return stationRepository.findAll(paging);
+	}
+
+	@Override
+	public Station findByGuid(String guid) {
+		// TODO Auto-generated method stub
+		return stationRepository.findByGuid(guid);
 	}
 }

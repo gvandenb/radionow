@@ -14,5 +14,5 @@ public interface StationRepository extends JpaRepository<Station, Long> {
 	
 	List<Station> findByFrequencyContaining(String frequency);
 	
-
+	Station findByGuid(String guid);
 }

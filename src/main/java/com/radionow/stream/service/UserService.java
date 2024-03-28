@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 
 import com.radionow.stream.model.User;
+import com.radionow.stream.model.UserView;
+import com.radionow.stream.model.ViewType;
 
 public interface UserService {
 
@@ -17,5 +19,6 @@ public interface UserService {
 	public List<User> findByEmailContaining(String email);
 
 	public Optional<User> findById(Long id);
+
 
 }

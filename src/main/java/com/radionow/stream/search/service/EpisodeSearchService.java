@@ -1,6 +1,7 @@
-package com.radionow.stream.service;
+package com.radionow.stream.search.service;
 
 
+import java.io.IOException;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -9,6 +10,8 @@ import org.springframework.data.domain.Pageable;
 import com.radionow.stream.model.Episode;
 import com.radionow.stream.search.model.SearchEpisode;
 import com.radionow.stream.search.model.SearchPodcast;
+
+import co.elastic.clients.elasticsearch.core.SearchResponse;
 
 public interface EpisodeSearchService {
 
@@ -23,5 +26,8 @@ public interface EpisodeSearchService {
 	public SearchEpisode getEpisodeByGuid(String guid);
 
 	public void saveAll(List<SearchEpisode> searchEpisodes);
+
+	SearchResponse<SearchEpisode> multiMatch(String key, List<String> fields, Integer from, Integer size) throws IOException;
+
 
 }

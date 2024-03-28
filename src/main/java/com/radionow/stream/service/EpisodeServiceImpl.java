@@ -47,6 +47,12 @@ public class EpisodeServiceImpl implements EpisodeService {
 		// TODO Auto-generated method stub
 		return episodeRepository.findAll();
 	}
+
+	@Override
+	public Page<Episode> findAll(Pageable paging) {
+		// TODO Auto-generated method stub
+		return episodeRepository.findAll(paging);
+	}
     
     
 }

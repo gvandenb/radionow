@@ -21,5 +21,6 @@ public interface EpisodeService {
 	public void save(Episode episode);
 
 	public List<Episode> findAll();
+	public Page<Episode> findAll(Pageable paging);
 
 }

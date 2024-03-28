@@ -17,6 +17,6 @@ public interface EpisodeSearchRepository extends ElasticsearchRepository<SearchE
 
 	SearchEpisode getEpisodeByGuid(String guid);
 
-
+	
     
 }

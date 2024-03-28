@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,13 +25,15 @@ import com.radionow.stream.model.FavoriteStation;
 import com.radionow.stream.model.Podcast;
 import com.radionow.stream.model.Station;
 import com.radionow.stream.model.User;
+import com.radionow.stream.model.UserView;
+import com.radionow.stream.model.ViewType;
 import com.radionow.stream.repository.FavoriteEpisodeRepository;
 import com.radionow.stream.repository.FavoritePodcastRepository;
 import com.radionow.stream.repository.FavoriteStationRepository;
+import com.radionow.stream.search.service.UserSearchService;
 import com.radionow.stream.service.EpisodeService;
 import com.radionow.stream.service.PodcastService;
 import com.radionow.stream.service.StationService;
-import com.radionow.stream.service.UserSearchService;
 import com.radionow.stream.service.UserService;
 
 
@@ -105,6 +108,26 @@ public class UserController {
 			 User user = userService.findById(id).get();
 
 			 return new ResponseEntity<>(user, HttpStatus.OK);
+		} catch (Exception e) {
+			 return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	// TODO: make more generic, not just for searchterm
+	@PutMapping("/users/{id}")
+	public ResponseEntity<User> updateUserById(@PathVariable("id") Long id, @RequestParam(required = true) String term) {
+		try {
+			 User user = userService.findById(id).get();
+			 if (user.getSearchTerms() == null) {
+				 List<String> searchterms = new ArrayList<String>();
+				 searchterms.add(term);
+				 user.setSearchTerms(searchterms);
+			 }
+			 else {
+				 user.getSearchTerms().add(term);
+			 }
+			 User dbUser = userService.save(user);
+			 return new ResponseEntity<>(dbUser, HttpStatus.OK);
 		} catch (Exception e) {
 			 return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -238,6 +261,8 @@ public class UserController {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
+	
+
 }
 
 

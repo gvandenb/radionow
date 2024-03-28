@@ -3,8 +3,15 @@ package com.radionow.stream.controller;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -18,10 +25,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.radionow.stream.model.Episode;
+import com.radionow.stream.model.Podcast;
 import com.radionow.stream.model.Station;
 import com.radionow.stream.model.Statistic;
 import com.radionow.stream.model.Statistic.StatisticType;
 import com.radionow.stream.repository.StationRepository;
+import com.radionow.stream.search.model.SearchPodcast;
 import com.radionow.stream.service.StationService;
 
 @CrossOrigin(origins = "http://localhost:8081")
@@ -31,7 +41,7 @@ public class StationController {
 
 	@Autowired
 	StationService stationService;
-
+/*
 	@GetMapping("/stations")
 	public ResponseEntity<List<Station>> getAllStations(@RequestParam(required = false) String title) {
 		try {
@@ -50,6 +60,51 @@ public class StationController {
 		} catch (Exception e) {
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+	*/
+	@GetMapping("/stations")
+	public ResponseEntity<List<Station>> getStationsByPage(
+	        @RequestParam(defaultValue = "0") int page,
+	        @RequestParam(defaultValue = "10") int size,
+	        @RequestParam(required = false) String range
+			) {
+		HttpHeaders responseHeaders = new HttpHeaders();
+
+		int start = -1;
+		int end = -1;
+		String[] output = {};
+		if (range != null) {
+			output = range.replace("[", "").replace("]", "").split(",");
+			start = Integer.valueOf(output[0]);
+			end = Integer.valueOf(output[1]);
+			if (start == 0) {
+				page = 0;
+			}
+			else {
+				size = end - start + 1;
+				page = start / size;
+			}
+		}
+
+		Pageable paging = PageRequest.of(page, size, Sort.by("statistic.rbVotes").descending());
+		Page<Station> stationData = stationService.findAll(paging);
+		long totalResults = stationData.getTotalElements();
+		if (start > -1) {
+			responseHeaders.set("Content-Range", "stations="+start+"-"+end+"/"+totalResults);
+		}
+		System.out.println("Retrieved a page of stations");
+		
+        responseHeaders.set("Access-Control-Expose-Headers", "Content-Range");
+
+		
+		if (!stationData.isEmpty()) {
+			//return new ResponseEntity<>(stationData.getContent(), HttpStatus.OK);
+	        return ResponseEntity.ok().headers(responseHeaders).body(stationData.getContent());
+
+		} else {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+		
 	}
 
 	@GetMapping("/stations/{id}")
@@ -80,6 +135,20 @@ public class StationController {
 		try {
 			
 			stationList.forEach(station -> stationService.save(station));
+			
+			return new ResponseEntity<>("OK", HttpStatus.CREATED);
+		} catch (Exception e) {
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	@PutMapping("/stations/batch")
+	public ResponseEntity<String> updateStationAll(@RequestBody List<Station> stationList) {
+		try {
+			List<Station> stations = stationList.stream()
+		            .map(e -> updateStation((Station) e))
+		            .collect(Collectors.toList());
+			stationList.forEach(station -> stationService.saveAll(stations));
 			
 			return new ResponseEntity<>("OK", HttpStatus.CREATED);
 		} catch (Exception e) {
@@ -138,6 +207,7 @@ public class StationController {
 			_station.setCategories(station.getCategories());
 			_station.setStatistic(station.getStatistic());
 			_station.setUrl(station.getUrl());
+			_station.setImageUrl(station.getImageUrl());
 			return new ResponseEntity<>(stationService.save(_station), HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -177,5 +247,46 @@ public class StationController {
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+	
+	private Station updateStation(Station station) {
+		Station dbStation = stationService.findById(station.getId()).get();
+		if (dbStation == null) {
+			stationService.save(station);
+		}
+		else {
+			if (station.getCallsign() != null) {
+				dbStation.setCallsign(station.getCallsign());
+			}
+			dbStation.setCallsign(station.getCallsign());
+			if (station.getCategories() != null) {
+				dbStation.setCategories(station.getCategories());
+			}
+			if (station.getStatistic() != null) {
+				dbStation.setStatistic(station.getStatistic());
+			} 
+			if (station.getDescription() != null) {
+				dbStation.setDescription(station.getDescription());
+			}
+			if (station.getFrequency() != null) {
+				dbStation.setFrequency(station.getFrequency());
+			}
+			if (station.getGuid() != null) {
+				dbStation.setGuid(station.getGuid());
+			}
+			else {
+				dbStation.setGuid(UUID.randomUUID().toString());
+			}
+			if (station.getTitle() != null) {
+				dbStation.setTitle(station.getTitle());
+			}
+			if (station.getUrl() != null) {
+				dbStation.setUrl(station.getUrl());
+			}
+			if (station.getCity() != null) {
+				dbStation.setCity(station.getCity());
+			}
+		}
+		return dbStation;
 	}
 }
