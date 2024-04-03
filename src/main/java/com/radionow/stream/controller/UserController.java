@@ -1,5 +1,6 @@
 package com.radionow.stream.controller;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -193,7 +194,11 @@ public class UserController {
 	public ResponseEntity<Episode> setFavoriteEpisodeUserIdEpisodeId(@PathVariable("id") Long id, @PathVariable("guid") String guid) {
 		try {
 			 FavoriteEpisode favorite = new FavoriteEpisode();
-			 Episode episode = episodeService.findByGuid(guid);
+			 System.out.println("Guid: " + guid);
+			 String result = java.net.URLDecoder.decode(guid, StandardCharsets.UTF_8);
+			 System.out.println("Guid: " + result);
+
+			 Episode episode = episodeService.findByGuid(result);
 			 favorite.setUserId(id);
 			 favorite.setEpisode(episode);
 			 System.out.println("Saving favorite episode: " + favorite);
@@ -208,13 +213,20 @@ public class UserController {
 	@DeleteMapping("/users/{id}/favorites/episodes/{guid}")
 	public ResponseEntity<String> deleteFavoriteEpisodeUserIdEpisodeId(@PathVariable("id") Long id, @PathVariable("guid") String guid) {
 		try {
+			String result = java.net.URLDecoder.decode(guid, StandardCharsets.UTF_8);
+			Episode episode = episodeService.findByGuid(result);
+			if (episode == null) {
+				return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+
+			}
+			else {
+				FavoriteEpisode fe = favoriteEpisodeRepository.findByUserIdAndEpisodeId(id, episode.getId());
 			 
-			Episode episode = episodeService.findByGuid(guid);
-			 FavoriteEpisode fe = favoriteEpisodeRepository.findByUserIdAndEpisodeId(id, episode.getId());
-			 
-			 favoriteEpisodeRepository.delete(fe);
-			 return new ResponseEntity<>("OK", HttpStatus.OK);
+				favoriteEpisodeRepository.delete(fe);
+				return new ResponseEntity<>("OK", HttpStatus.OK);
+			}
 		} catch (Exception e) {
+			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}

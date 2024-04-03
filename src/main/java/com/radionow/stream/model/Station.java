@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.hibernate.annotations.NaturalId;
 import org.springframework.data.elasticsearch.annotations.Document;
 
 import com.radionow.stream.model.Statistic.StatisticType;
@@ -30,6 +31,7 @@ public class Station {
 	@Column(length = 4096, name = "description")
 	private String description;
 	
+	@NaturalId
 	@Column(name = "guid")
 	private String guid = UUID.randomUUID().toString();
 	

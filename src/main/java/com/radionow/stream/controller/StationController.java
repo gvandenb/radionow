@@ -41,27 +41,28 @@ public class StationController {
 
 	@Autowired
 	StationService stationService;
-/*
-	@GetMapping("/stations")
-	public ResponseEntity<List<Station>> getAllStations(@RequestParam(required = false) String title) {
+
+	@GetMapping("/stations/categories")
+	public ResponseEntity<List<Station>> getAllStationsByCategoryName(@RequestParam(required = true) String name, @RequestParam(required = true) String sort) {
 		try {
 			List<Station> stations = new ArrayList<Station>();
 
-			if (title == null)
-				stationService.findAll().forEach(stations::add);
-			else
-				stationService.findByTitleContaining(title).forEach(stations::add);
+			Pageable paging = PageRequest.of(0, 10, Sort.by(sort).descending());
 
+			stations = stationService.findByCategoriesName(name, paging);
+
+			System.out.println("Station category search for: " + name);
 			if (stations.isEmpty()) {
 				return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 			}
 
 			return new ResponseEntity<>(stations, HttpStatus.OK);
 		} catch (Exception e) {
+			e.printStackTrace();
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
-	*/
+	
 	@GetMapping("/stations")
 	public ResponseEntity<List<Station>> getStationsByPage(
 	        @RequestParam(defaultValue = "0") int page,
@@ -180,7 +181,12 @@ public class StationController {
 			Station station = stationData.get();
 			Statistic stat = station.getStatistic();
 			if (stat != null) {
-				stat.setViews(stat.getViews() + 1);
+				if (stat.getViews() == null) {
+					stat.setViews(1L);
+				}
+				else {
+					stat.setViews(stat.getViews() + 1);
+				}
 			}
 			else {
 				stat = new Statistic(1L, StatisticType.STATION);

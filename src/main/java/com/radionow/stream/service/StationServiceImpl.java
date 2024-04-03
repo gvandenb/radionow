@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.radionow.stream.model.Station;
@@ -78,5 +79,11 @@ public class StationServiceImpl implements StationService {
 	public Station findByGuid(String guid) {
 		// TODO Auto-generated method stub
 		return stationRepository.findByGuid(guid);
+	}
+
+	@Override
+	public List<Station> findByCategoriesName(String categoryName, Pageable paging) {
+		// TODO Auto-generated method stub
+		return stationRepository.findByCategoriesName(categoryName, paging);
 	}
 }

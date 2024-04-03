@@ -43,6 +43,35 @@ public class UserViewController {
 		}
 	}
 	
+	@PutMapping("/users/{uid}/views/stations/{guid}")
+	public ResponseEntity<UserView> updateStationUserViewByObjectId(@PathVariable("uid") Long id, 
+			@PathVariable("guid") String guid,
+			@RequestParam(required = true) String time) {
+		try {
+			System.out.println("time1: " + (long)Double.parseDouble(time));
+		
+			UserView dataUserView = userViewService.findUserViewByUserIdAndObjectId(id, guid);
+			if (dataUserView == null) {
+				UserView userView = new UserView();
+				System.out.println("time2: " + (long)Double.parseDouble(time));
+				userView.setLastPlayedTime((long)Double.parseDouble(time));
+				userView.setObjectId(guid);
+				userView.setUserId(id);
+				userView.setViewType(ViewType.STATION);
+				dataUserView = userViewService.save(userView);
+				//return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+			}
+			dataUserView.setViewType(ViewType.EPISODE);
+			dataUserView.setLastPlayedTime((long)Double.parseDouble(time));
+			
+			UserView savedUserView = userViewService.save(dataUserView);
+			return new ResponseEntity<>(savedUserView, HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
 	@PutMapping("/users/{uid}/views/episodes/{guid}")
 	public ResponseEntity<UserView> upadateUserViewByObjectId(@PathVariable("uid") Long id, 
 															@PathVariable("guid") String guid,

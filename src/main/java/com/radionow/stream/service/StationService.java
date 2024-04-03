@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import com.radionow.stream.model.Station;
 
@@ -31,5 +32,7 @@ public interface StationService {
 	public Page<Station> findAll(Pageable paging);
 	
 	public Station findByGuid(String guid);
+
+	public List<Station> findByCategoriesName(String categoryName, Pageable paging);
 
 }

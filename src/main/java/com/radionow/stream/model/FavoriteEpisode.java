@@ -21,9 +21,7 @@ public class FavoriteEpisode {
 	@Column(name = "userId")
 	private Long userId;
 	
-	@MapsId
 	@OneToOne
-	@JoinColumn(name = "guid")
 	private Episode episode;
 	
 	public FavoriteEpisode() {}
