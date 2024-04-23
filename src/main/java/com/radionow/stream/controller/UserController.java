@@ -19,7 +19,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.radionow.stream.model.Book;
 import com.radionow.stream.model.Episode;
+import com.radionow.stream.model.FavoriteBook;
 import com.radionow.stream.model.FavoriteEpisode;
 import com.radionow.stream.model.FavoritePodcast;
 import com.radionow.stream.model.FavoriteStation;
@@ -28,10 +30,12 @@ import com.radionow.stream.model.Station;
 import com.radionow.stream.model.User;
 import com.radionow.stream.model.UserView;
 import com.radionow.stream.model.ViewType;
+import com.radionow.stream.repository.FavoriteBookRepository;
 import com.radionow.stream.repository.FavoriteEpisodeRepository;
 import com.radionow.stream.repository.FavoritePodcastRepository;
 import com.radionow.stream.repository.FavoriteStationRepository;
 import com.radionow.stream.search.service.UserSearchService;
+import com.radionow.stream.service.BookService;
 import com.radionow.stream.service.EpisodeService;
 import com.radionow.stream.service.PodcastService;
 import com.radionow.stream.service.StationService;
@@ -56,6 +60,9 @@ public class UserController {
 	PodcastService podcastService;
 	
 	@Autowired
+	BookService bookService;
+	
+	@Autowired
 	FavoriteEpisodeRepository favoriteEpisodeRepository;  // TODO change to service impl
 	
 	@Autowired
@@ -64,6 +71,9 @@ public class UserController {
 	@Autowired
 	FavoritePodcastRepository favoritePodcastRepository;  // TODO change to service impl
 	
+	@Autowired
+	FavoriteBookRepository favoriteBookRepository;  // TODO change to service impl
+
 	@Autowired
 	UserSearchService userSearchService;
 	
@@ -134,6 +144,10 @@ public class UserController {
 		}
 	}
 	
+	//===============================================================
+	// Favorite Stations
+	//===============================================================
+
 	@GetMapping("/users/{id}/favorites/stations")
 	public ResponseEntity<List<Station>> getFavoriteStationsByUserId(@PathVariable("id") long id) {
 		List<Station> stations = new ArrayList<Station>();
@@ -176,6 +190,55 @@ public class UserController {
 		}
 	}
 	
+	//===============================================================
+	// Favorite Audiobooks
+	//===============================================================
+
+	@GetMapping("/users/{id}/favorites/books")
+	public ResponseEntity<List<Book>> getFavoriteBooksByUserId(@PathVariable("id") long id) {
+		List<Book> books = new ArrayList<Book>();
+		
+		books = favoriteBookRepository.findByUserId(id).stream()
+					.map(e -> e.getBook()).collect(Collectors.toList());
+		
+		if (books.isEmpty()) {
+			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+		}
+
+		return new ResponseEntity<>(books, HttpStatus.OK);	
+	}
+	
+	@GetMapping("/users/{id}/favorites/books/{bid}")
+	public ResponseEntity<Book> setFavoriteBookUserIdBookId(@PathVariable("id") Long id, @PathVariable("bid") Long bid) {
+		try {
+			 FavoriteBook favorite = new FavoriteBook();
+			 Book book = bookService.findById(bid);
+			 favorite.setUserId(id);
+			 favorite.setBook(book);
+			 
+			 FavoriteBook fb = favoriteBookRepository.save(favorite);
+			 return new ResponseEntity<>(book, HttpStatus.OK);
+		} catch (Exception e) {
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	@DeleteMapping("/users/{id}/favorites/books/{bid}")
+	public ResponseEntity<String> deleteFavoriteAudiobookUserIdBookId(@PathVariable("id") Long id, @PathVariable("bid") Long bid) {
+		try {
+			 
+			 FavoriteBook fb = favoriteBookRepository.findByUserIdAndBookId(id, bid);
+			 
+			 favoriteBookRepository.delete(fb);
+			 return new ResponseEntity<>("OK", HttpStatus.OK);
+		} catch (Exception e) {
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	//===============================================================
+	// Favorite Episodes
+	//===============================================================
 	@GetMapping("/users/{id}/favorites/episodes")
 	public ResponseEntity<List<Episode>> getFavoriteEpisodesByUserId(@PathVariable("id") long id) {
 		List<Episode> episodes = new ArrayList<Episode>();
@@ -231,6 +294,9 @@ public class UserController {
 		}
 	}
 	
+	//===============================================================
+	// Favorite Podcasts
+	//===============================================================
 	@GetMapping("/users/{id}/favorites/podcasts")
 	public ResponseEntity<List<Podcast>> getFavoritePodcastsByUserId(@PathVariable("id") long id) {
 		List<Podcast> podcasts = new ArrayList<Podcast>();

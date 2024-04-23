@@ -7,6 +7,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.radionow.stream.model.Podcast;
@@ -64,4 +65,30 @@ public class PodcastServiceImpl implements PodcastService {
 		// TODO Auto-generated method stub
 		return podcastRepository.findAll(paging);
 	}
+
+	@Override
+	public Podcast findByFeedURL(String feedUrl) {
+		// TODO Auto-generated method stub
+		return podcastRepository.findByFeedURL(feedUrl);
+	}
+
+	@Override
+	public List<String> findAllFeedurl() {
+		// TODO Auto-generated method stub
+		return podcastRepository.findAllFeedurl();
+	}
+
+	@Override
+	public List<Podcast> findByCategoriesNameOrderByRankAsc(String categoryName, Pageable paging) {
+		// TODO Auto-generated method stub
+		return podcastRepository.findByCategoriesNameOrderByRankAsc(categoryName, paging);
+	}
+
+	@Override
+	public List<Podcast> findByCategoriesNameOrderByLastPubDateDesc(String categoryName, Pageable paging) {
+		// TODO Auto-generated method stub
+		return podcastRepository.findByCategoriesNameOrderByLastPubDateDesc(categoryName, paging);
+	}
+	
+	
 }

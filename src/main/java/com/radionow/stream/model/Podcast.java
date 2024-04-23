@@ -3,11 +3,12 @@ package com.radionow.stream.model;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
-import org.springframework.data.elasticsearch.annotations.Document;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.radionow.stream.model.Statistic.StatisticType;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -16,14 +17,23 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
-@Table(name = "podcasts")
+@Table(name = "podcasts", indexes = { @Index(name = "podcast_feedurl_idx", columnList = "feedurl")})
 public class Podcast {
 	
 	@Id
@@ -32,6 +42,10 @@ public class Podcast {
 	
 	@Column(name = "title")
     private String title;
+	
+	@Builder.Default
+	@Column(name = "guid")
+	private String guid = UUID.randomUUID().toString();
 	
 	@Column(name = "author")
 	private String author;
@@ -45,10 +59,15 @@ public class Podcast {
 	@Column(length = 2048, name = "artworkURL")
 	private String artworkURL;
 	
+	@Column(name = "rank")
+	private Integer rank;
+	
+	@Builder.Default
 	@JsonIgnore
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "podcast", cascade = CascadeType.ALL)
 	private List<Episode> episodes = new ArrayList<Episode>();
 	
+	@Builder.Default
 	@Column(name = "categories")
 	@OneToMany(cascade = CascadeType.ALL)
 	private List<Category> categories = new ArrayList<Category>();
@@ -64,117 +83,12 @@ public class Podcast {
 	@Column(name = "lastPubDate")
 	private Date lastPubDate;
 	
+	@Column(name = "created_at")
+	@CreationTimestamp
+    private Date createdAt;
     
-	public Podcast() {}
-	
-
-	public Podcast(String title, String author, String description, List<Episode> episodes, List<Category> categories,
-			String feedURL, String artworkURL) {
-		super();
-		this.title = title;
-		this.author = author;
-		this.description = description;
-		this.episodes = episodes;
-		this.categories = categories;
-		this.feedURL = feedURL;
-		this.artworkURL = artworkURL;
-	}
-
-
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
-	}
-
-	public String getTitle() {
-		return title;
-	}
-
-	public void setTitle(String title) {
-		this.title = title;
-	}
-
-	public String getAuthor() {
-		return author;
-	}
-
-	public void setAuthor(String author) {
-		this.author = author;
-	}
-	
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
-	public String getFeedURL() {
-		return feedURL;
-	}
-
-	public void setFeedURL(String feedURL) {
-		this.feedURL = feedURL;
-	}
-
-	public String getArtworkURL() {
-		return artworkURL;
-	}
-
-	public void setArtworkURL(String artworkURL) {
-		this.artworkURL = artworkURL;
-	}
-
-	public List<Category> getCategories() {
-		return categories;
-	}
-
-	public void setCategories(List<Category> categories) {
-		this.categories = categories;
-	}
-
-	
-	public Statistic getStatistic() {
-		return statistic;
-	}
-
-
-	public void setStatistic(Statistic statistic) {
-		this.statistic = statistic;
-	}
-
-	
-	public List<Episode> getEpisodes() {
-		return episodes;
-	}
-
-
-	public void setEpisodes(List<Episode> episodes) {
-		this.episodes = episodes;
-	}
-
-
-	public Date getLastPubDate() {
-		return lastPubDate;
-	}
-
-
-	public void setLastPubDate(Date lastPubDate) {
-		this.lastPubDate = lastPubDate;
-	}
-
-
-	@Override
-	public String toString() {
-		return "Podcast [id=" + id + ", title=" + title + ", author=" + author + ", description=" + description
-				+ ", categories=" + categories + ", feedURL=" + feedURL + ", artworkURL="
-				+ artworkURL + "]";
-	}
-	
-	
+	@Column(name = "updated_at")
+	@UpdateTimestamp
+    private Date updatedAt;
 
 }

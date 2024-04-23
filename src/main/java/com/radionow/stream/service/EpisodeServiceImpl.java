@@ -53,6 +53,12 @@ public class EpisodeServiceImpl implements EpisodeService {
 		// TODO Auto-generated method stub
 		return episodeRepository.findAll(paging);
 	}
+
+	@Override
+	public Page<Episode> findByIsIndexed(Boolean isIndexed, Pageable paging) {
+		// TODO Auto-generated method stub
+		return episodeRepository.findByIsIndexed(isIndexed, paging);
+	}
     
     
 }

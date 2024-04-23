@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.radionow.stream.model.Episode;
@@ -25,19 +26,21 @@ public class EpisodeController {
 	EpisodeService episodeService;
 	
 	
-	@GetMapping("/episodes/{guid}")
-	public ResponseEntity<Episode> getEpisodeByGuid(@PathVariable("guid") String guid) {
+	@GetMapping("/episodes")
+	public ResponseEntity<Episode> getEpisodeByGuid(@RequestParam("guid") String guid) {
 		try {
+			System.out.println("Guid: " + guid);
 			 Episode episode = episodeService.getEpisodeByGuid(guid);
 
 			 return new ResponseEntity<>(episode, HttpStatus.OK);
 		} catch (Exception e) {
+			e.printStackTrace();
 			 return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
-	@GetMapping("/episodes/{guid}/views")
-	public ResponseEntity<Long> fetchEpisodeViews(@PathVariable("guid") String guid) {
+	@GetMapping("/episodes/views")
+	public ResponseEntity<Long> fetchEpisodeViews(@RequestParam("guid") String guid) {
 		Episode episode = episodeService.findByGuid(guid);
 		Long viewCount = 1L;
 		if (episode != null) {
@@ -51,17 +54,18 @@ public class EpisodeController {
 		}
 	}
 	
-	@PutMapping("/episodes/{guid}/views")
-	public ResponseEntity<String> updateEpisodeViews(@PathVariable("guid") String guid) {
+	@PutMapping("/episodes/views")
+	public ResponseEntity<String> updateEpisodeViews(@RequestParam("guid") String guid) {
 		Episode episode = episodeService.findByGuid(guid);
 
 		if (episode != null) {
 			Statistic stat = episode.getStatistic();
 			if (stat != null) {
 				stat.setViews(stat.getViews() + 1);
+				stat.setStatisticType(StatisticType.EPISODE);
 			}
 			else {
-				stat = new Statistic(1L, StatisticType.STATION);
+				stat = new Statistic(1L, StatisticType.EPISODE);
 			}
 			episode.setStatistic(stat);
 			episodeService.save(episode);

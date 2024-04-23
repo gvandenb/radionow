@@ -18,6 +18,8 @@ public interface EpisodeRepository extends JpaRepository<Episode, Long> {
     
     Episode findByGuid(String guid);
     
+    Page<Episode> findByIsIndexed(Boolean isIndexed, Pageable pageable);
+    
     @Transactional
     void deleteEpisodeByPodcastId(long podcastId);
 

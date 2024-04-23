@@ -7,6 +7,7 @@ import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 import org.springframework.data.elasticsearch.annotations.WriteTypeHint;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import lombok.AllArgsConstructor;
@@ -30,13 +31,19 @@ public class SearchStatistic {
 	@Field(type = FieldType.Long, name = "views")
 	private Long views;
 	
+	@Field(type = FieldType.Integer, name = "rbClicks")
+	private Integer rbClicks;
+	
+	@Field(type = FieldType.Integer, name = "rbVotes")
+	private Integer rbVotes;
+	
 	// clicked on a station
 	@Field(type = FieldType.Nested, name = "statisticType")
 	private StatisticType  statisticType;
 	
 	
 	public static enum StatisticType {
-		 USER, PODCAST, STATION, EPISODE
+		 USER, PODCAST, STATION, EPISODE, AUDIOBOOK
 	}
 	
 	

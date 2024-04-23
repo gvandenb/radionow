@@ -2,6 +2,11 @@ package com.radionow.stream.model;
 
 import java.util.Date;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -24,17 +29,20 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "episodes", indexes = { @Index(name = "episode_guid_idx", columnList = "guid"), @Index(name = "episode_podcast_id_idx", columnList = "podcast_id")})
+@Table(name = "episodes", indexes = { @Index(name = "episode_guid_idx", columnList = "guid"), 
+									  @Index(name = "episode_podcast_id_idx", columnList = "podcast_id"),
+									  @Index(name = "episode_is_indexed_idx", columnList = "is_indexed")
+									})
 public class Episode {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long id;
 	
-	@Column(name = "title")
+	@Column(length = 2048, name = "title")
     private String title;
 	
-	@Column(name = "guid")
+	@Column(length = 1024, name = "guid")
     private String guid;
 
 	@Column(name = "pubDate")
@@ -64,7 +72,18 @@ public class Episode {
         { @JoinColumn(name = "statistics_id", referencedColumnName = "id") })
 	private Statistic statistic;
 	
-
+	@JsonIgnore
+	@Builder.Default
+	@Column(name = "isIndexed")
+	private Boolean isIndexed = false;
+	
+	@Column(name = "created_at")
+	@CreationTimestamp
+    private Date createdAt;
+    
+	@Column(name = "updated_at")
+	@UpdateTimestamp
+    private Date updatedAt;
 	
 	
 	

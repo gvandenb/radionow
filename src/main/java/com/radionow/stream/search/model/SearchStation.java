@@ -61,6 +61,9 @@ public class SearchStation {
 	
 	@Field(type = FieldType.Text, name = "imageUrl")
 	private String imageUrl;
+	
+	@Field(type = FieldType.Boolean, name = "published")
+	private Boolean published;
 
 	@Builder.Default
     @Field(type = FieldType.Nested, includeInParent = true)
@@ -68,7 +71,7 @@ public class SearchStation {
 	
 	@Builder.Default
     @Field(type = FieldType.Nested, includeInParent = true)
-	private SearchStatistic statistic = new SearchStatistic(null, 1L, StatisticType.STATION);
+	private SearchStatistic statistic = new SearchStatistic(null, 1L, 1, 1, StatisticType.STATION);
 	
 
 	

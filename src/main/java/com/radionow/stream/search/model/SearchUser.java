@@ -43,7 +43,7 @@ public class SearchUser {
 	
 	@Builder.Default
 	@Field(type = FieldType.Nested, name = "statistic")
-	private SearchStatistic statistic = new SearchStatistic(null, 1L, StatisticType.USER);
+	private SearchStatistic statistic = new SearchStatistic(null, 1L, 1, 1, StatisticType.USER);
 	
 	@Builder.Default
 	@Field(type = FieldType.Nested, name = "devices")

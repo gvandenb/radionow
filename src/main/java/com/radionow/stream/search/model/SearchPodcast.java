@@ -39,6 +39,12 @@ public class SearchPodcast {
 	@Field(type = FieldType.Text, name = "title")
     private String title;
 	
+	@Field(type = FieldType.Integer, name = "rank")
+    private Integer rank;
+	
+	@Field(type = FieldType.Text, name = "guid")
+    private String guid;
+	
 	@Field(type = FieldType.Text, name = "author")
 	private String author;
 	
@@ -57,7 +63,7 @@ public class SearchPodcast {
 	
 	@Builder.Default
     @Field(type = FieldType.Nested, includeInParent = true)
-	private SearchStatistic statistic = new SearchStatistic(null, 1L, StatisticType.STATION);
+	private SearchStatistic statistic = new SearchStatistic(null, 1L, 1, 1, StatisticType.PODCAST);
     
 	@Field(type = FieldType.Date, name = "lastPubDate")
 	private Date lastPubDate;

@@ -86,4 +86,16 @@ public class StationServiceImpl implements StationService {
 		// TODO Auto-generated method stub
 		return stationRepository.findByCategoriesName(categoryName, paging);
 	}
+
+	@Override
+	public Page<Station> findAllByPublished(Pageable paging, Boolean published) {
+		// TODO Auto-generated method stub
+		return stationRepository.findAllByPublished(paging, published);
+	}
+
+	@Override
+	public List<Station> findByCategoriesNameAndPublished(String name, Pageable paging, Boolean isPublished) {
+		// TODO Auto-generated method stub
+		return stationRepository.findByCategoriesNameAndPublished(name, paging, isPublished);
+	}
 }

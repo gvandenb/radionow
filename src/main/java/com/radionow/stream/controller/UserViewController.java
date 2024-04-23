@@ -72,13 +72,26 @@ public class UserViewController {
 		}
 	}
 	
-	@PutMapping("/users/{uid}/views/episodes/{guid}")
-	public ResponseEntity<UserView> upadateUserViewByObjectId(@PathVariable("uid") Long id, 
+	@PutMapping("/users/{uid}/views/{guid}")
+	public ResponseEntity<UserView> updateUserViewByObjectId(@PathVariable("uid") Long id, 
 															@PathVariable("guid") String guid,
+															@RequestParam(required = true) String type,
 															@RequestParam(required = true) String time) {
 		try {
 			System.out.println("time1: " + (long)Double.parseDouble(time));
 
+			ViewType viewType;
+			switch(type) {
+			case "station":
+				viewType = ViewType.STATION;
+			case "audiobook":
+				viewType = ViewType.AUDIOBOOK;
+			case "episode":
+				viewType = ViewType.EPISODE;
+			default:
+				viewType = ViewType.PODCAST;
+			}
+			
 			UserView dataUserView = userViewService.findUserViewByUserIdAndObjectId(id, guid);
 			if (dataUserView == null) {
 				UserView userView = new UserView();
@@ -86,11 +99,11 @@ public class UserViewController {
 				userView.setLastPlayedTime((long)Double.parseDouble(time));
 				userView.setObjectId(guid);
 				userView.setUserId(id);
-				userView.setViewType(ViewType.EPISODE);
+				userView.setViewType(viewType);
 				dataUserView = userViewService.save(userView);
 				//return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 			}
-			dataUserView.setViewType(ViewType.EPISODE);
+			dataUserView.setViewType(viewType);
 			dataUserView.setLastPlayedTime((long)Double.parseDouble(time));
 			
 			UserView savedUserView = userViewService.save(dataUserView);
@@ -101,8 +114,9 @@ public class UserViewController {
 		}
 	}
 	
-	@GetMapping("/users/{uid}/views/episodes/{guid}")
-	public ResponseEntity<UserView> getUserViewByViewTypeAndObjectId(@PathVariable("uid") Long id, @PathVariable("guid") String guid) {
+	@GetMapping("/users/{uid}/views/{guid}")
+	public ResponseEntity<UserView> getUserViewByViewTypeAndObjectId(@PathVariable("uid") Long id, 
+																	@PathVariable("guid") String guid) {
 		try {
 			UserView userView = userViewService.findUserViewByUserIdAndObjectId(id, guid);
 			if (userView == null) {

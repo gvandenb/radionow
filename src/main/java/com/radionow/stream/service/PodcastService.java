@@ -6,8 +6,10 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import com.radionow.stream.model.Podcast;
+import com.radionow.stream.model.Station;
 
 public interface PodcastService {
 
@@ -23,8 +25,16 @@ public interface PodcastService {
 
 	public Podcast findByTitle(String title);
 
+	public Podcast findByFeedURL(String feedUrl);
+
+	public List<String> findAllFeedurl();
+
 	public void deletePodcastById(long id);
 
 	public Page<Podcast> findAll(Pageable paging);
+
+	public List<Podcast> findByCategoriesNameOrderByRankAsc(String categoryName, Pageable paging);
+
+	public List<Podcast> findByCategoriesNameOrderByLastPubDateDesc(String categoryName, Pageable paging);
 
 }

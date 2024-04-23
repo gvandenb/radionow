@@ -2,8 +2,8 @@ package com.radionow.stream.repository;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.radionow.stream.model.Station;
@@ -19,4 +19,8 @@ public interface StationRepository extends JpaRepository<Station, Long> {
 	Station findByGuid(String guid);
 	
 	List<Station> findByCategoriesName(String categoryName, Pageable paging);
+
+	Page<Station> findAllByPublished(Pageable paging, Boolean published);
+
+	List<Station> findByCategoriesNameAndPublished(String name, Pageable paging, Boolean isPublished);
 }

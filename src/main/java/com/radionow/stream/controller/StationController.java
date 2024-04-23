@@ -45,11 +45,12 @@ public class StationController {
 	@GetMapping("/stations/categories")
 	public ResponseEntity<List<Station>> getAllStationsByCategoryName(@RequestParam(required = true) String name, @RequestParam(required = true) String sort) {
 		try {
+			
 			List<Station> stations = new ArrayList<Station>();
 
 			Pageable paging = PageRequest.of(0, 10, Sort.by(sort).descending());
-
-			stations = stationService.findByCategoriesName(name, paging);
+			Boolean isPublished = true;
+			stations = stationService.findByCategoriesNameAndPublished(name, paging, isPublished);
 
 			System.out.println("Station category search for: " + name);
 			if (stations.isEmpty()) {
@@ -57,6 +58,7 @@ public class StationController {
 			}
 
 			return new ResponseEntity<>(stations, HttpStatus.OK);
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -88,7 +90,8 @@ public class StationController {
 		}
 
 		Pageable paging = PageRequest.of(page, size, Sort.by("statistic.rbVotes").descending());
-		Page<Station> stationData = stationService.findAll(paging);
+		Boolean isPublished = true;
+		Page<Station> stationData = stationService.findAllByPublished(paging, isPublished);
 		long totalResults = stationData.getTotalElements();
 		if (start > -1) {
 			responseHeaders.set("Content-Range", "stations="+start+"-"+end+"/"+totalResults);
@@ -123,8 +126,7 @@ public class StationController {
 	public ResponseEntity<Station> createStation(@RequestBody Station station) {
 		try {
 			Station _station = stationService
-					.save(new Station(station.getTitle(), station.getCallsign(), station.getFrequency(), station.getDescription(), station.getUrl(),
-							station.getCategories(), station.getStatistic()));
+					.save(station);
 			return new ResponseEntity<>(_station, HttpStatus.CREATED);
 		} catch (Exception e) {
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);

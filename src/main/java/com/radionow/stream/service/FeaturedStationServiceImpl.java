@@ -1,6 +1,5 @@
 package com.radionow.stream.service;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -8,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.radionow.stream.model.FeaturedStation;
-import com.radionow.stream.model.Station;
 import com.radionow.stream.repository.FeaturedStationRepository;
 
 @Service
@@ -20,7 +18,6 @@ public class FeaturedStationServiceImpl implements FeaturedStationService {
 	@Override
 	public List<FeaturedStation> findByStartDateTimeBeforeAndEndDateTimeAfter(Date currentTime) {
 		// TODO Auto-generated method stub
-		List<Station> stationList = new ArrayList<Station>();
 		List<FeaturedStation> featuredStationList = featuredStationRepository.findByStartDateTimeBeforeAndEndDateTimeAfter(currentTime, currentTime);
 
 		return featuredStationList;

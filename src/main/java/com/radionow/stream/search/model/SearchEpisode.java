@@ -54,7 +54,7 @@ public class SearchEpisode {
 
 	@Builder.Default
     @Field(type = FieldType.Nested, includeInParent = true)
-	private SearchStatistic statistic = new SearchStatistic(null, 1L, StatisticType.STATION);
+	private SearchStatistic statistic = new SearchStatistic(null, 1L, 1, 1, StatisticType.EPISODE);
 
 	
 	

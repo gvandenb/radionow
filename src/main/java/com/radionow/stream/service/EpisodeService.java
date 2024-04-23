@@ -22,5 +22,6 @@ public interface EpisodeService {
 
 	public List<Episode> findAll();
 	public Page<Episode> findAll(Pageable paging);
+	public Page<Episode> findByIsIndexed(Boolean isIndexed, Pageable paging);
 
 }

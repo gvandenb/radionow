@@ -85,8 +85,16 @@ public class Statistic {
 
 
 
+	@Override
+	public String toString() {
+		return "Statistic [id=" + id + ", views=" + views + ", rbClicks=" + rbClicks + ", rbVotes=" + rbVotes
+				+ ", statisticType=" + statisticType + "]";
+	}
+
+
+
 	public static enum StatisticType {
-		 USER, PODCAST, STATION, EPISODE
+		 USER, PODCAST, STATION, EPISODE, AUDIOBOOK
 		}
 	
 	

@@ -47,6 +47,34 @@ public class PodcastController {
 	@Autowired
 	EpisodeService episodeService;
 
+	@GetMapping("/podcasts/categories")
+	public ResponseEntity<List<Podcast>> getAllPodcastsByCategoryName(@RequestParam(required = true) String name, 
+																	  @RequestParam(defaultValue = "0") int page,
+															          @RequestParam(defaultValue = "10") int size,
+															          @RequestParam(defaultValue = "DESC") String sort) {
+		try {
+			List<Podcast> podcasts = new ArrayList<Podcast>();
+
+			Pageable paging = PageRequest.of(page, size);
+			if (sort.equals("lastPubDate")) {
+				podcasts = podcastService.findByCategoriesNameOrderByLastPubDateDesc(name, paging);
+			}
+			else {
+				podcasts = podcastService.findByCategoriesNameOrderByRankAsc(name, paging);
+			}
+			
+			System.out.println("Podcast category search for: " + name + " [" + page +":"+ size + "]");
+			if (podcasts.isEmpty()) {
+				return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+			}
+
+			return new ResponseEntity<>(podcasts, HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
 	@GetMapping("/podcasts")
 	public ResponseEntity<List<Podcast>> getAllPodcastss(
 			@RequestParam(defaultValue = "0") int page,
@@ -56,8 +84,8 @@ public class PodcastController {
 			List<Podcast> podcasts = new ArrayList<Podcast>();
 
 			
-			//Pageable paging = PageRequest.of(page, size, Sort.by("statistic.views").descending());
-			Pageable paging = PageRequest.of(page, size, Sort.by("lastPubDate").descending());
+			Pageable paging = PageRequest.of(page, size, Sort.by("rank").ascending());
+			//Pageable paging = PageRequest.of(page, size, Sort.by("lastPubDate").descending());
 			Page<Podcast> podcastData = podcastService.findAll(paging);
 
 			if (podcastData.isEmpty()) {
@@ -97,17 +125,7 @@ public class PodcastController {
 	@PostMapping("/podcasts")
 	public ResponseEntity<Podcast> createPodcast(@RequestBody Podcast podcast) {
 		try {
-			Podcast _podcast = podcastService
-					.save(new Podcast(
-							podcast.getTitle(), 
-							podcast.getAuthor(), 
-							podcast.getDescription(),
-							podcast.getEpisodes(), 
-							podcast.getCategories(),
-							podcast.getFeedURL(), 
-							podcast.getArtworkURL()
-							
-							));
+			Podcast _podcast = podcastService.save(podcast);
 			return new ResponseEntity<>(_podcast, HttpStatus.CREATED);
 		} catch (Exception e) {
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -169,9 +187,10 @@ public class PodcastController {
 			Statistic stat = podcast.getStatistic();
 			if (stat != null) {
 				stat.setViews(stat.getViews() + 1);
+				stat.setStatisticType(StatisticType.PODCAST);
 			}
 			else {
-				stat = new Statistic(1L, StatisticType.STATION);
+				stat = new Statistic(1L, StatisticType.PODCAST);
 			}
 			podcast.setStatistic(stat);
 			podcastService.save(podcast);

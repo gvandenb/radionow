@@ -16,25 +16,38 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.radionow.stream.model.Author;
+import com.radionow.stream.model.Book;
 import com.radionow.stream.model.Category;
+import com.radionow.stream.model.Chapter;
 import com.radionow.stream.model.Episode;
 import com.radionow.stream.model.Podcast;
 import com.radionow.stream.model.Station;
+import com.radionow.stream.model.Statistic;
+import com.radionow.stream.search.model.SearchAudiobook;
+import com.radionow.stream.search.model.SearchAudiobookResult;
+import com.radionow.stream.search.model.SearchAuthor;
 import com.radionow.stream.search.model.SearchCategory;
+import com.radionow.stream.search.model.SearchChapter;
 import com.radionow.stream.search.model.SearchEpisode;
 import com.radionow.stream.search.model.SearchEpisodeResult;
 import com.radionow.stream.search.model.SearchPodcast;
 import com.radionow.stream.search.model.SearchPodcastResult;
 import com.radionow.stream.search.model.SearchStation;
 import com.radionow.stream.search.model.SearchStationResult;
+import com.radionow.stream.search.model.SearchStatistic;
+import com.radionow.stream.search.model.SearchStatistic.StatisticType;
+import com.radionow.stream.search.service.AudiobookSearchService;
 import com.radionow.stream.search.service.EpisodeSearchService;
 import com.radionow.stream.search.service.PodcastSearchService;
 import com.radionow.stream.search.service.StationSearchService;
+import com.radionow.stream.service.BookService;
 import com.radionow.stream.service.EpisodeService;
 import com.radionow.stream.service.PodcastService;
 import com.radionow.stream.service.StationService;
@@ -57,6 +70,9 @@ public class SearchController {
 	StationService stationService;
 	
 	@Autowired
+	BookService bookService;
+	
+	@Autowired
 	PodcastSearchService podcastSearchService;
 	
 	@Autowired
@@ -64,6 +80,9 @@ public class SearchController {
 	
 	@Autowired
 	StationSearchService stationSearchService;
+	
+	@Autowired
+	AudiobookSearchService audiobookSearchService;
 	
 	@Autowired
 	ElasticsearchTemplate elasticsearchTemplate;
@@ -154,9 +173,50 @@ public class SearchController {
 		return new ResponseEntity<>(response, HttpStatus.CREATED);
 	}
 	
+	@PutMapping("/search/rebuild/index/episodes")
+	public ResponseEntity<String> rebuildSearchEpisodeIndexDelta() {
+
+		Long startTime = System.currentTimeMillis();
+		List<Episode> episodes = new ArrayList<Episode>();
+		
+		Integer page = 0;
+		Integer size = 1000;
+		Integer totalPages = 0;
+		Long totalResults = 0L;
+
+		
+		Pageable paging = PageRequest.of(page, size);
+		
+		// 1. select latest episodes that have not been indexed by search (is_indexed == false) from episodes table
+		Page<Episode> episodeData = episodeService.findByIsIndexed(false, paging);
+		totalPages = episodeData.getTotalPages();
+		totalResults = episodeData.getTotalElements();
+		System.out.println("totalPages: " + totalPages);
+		while(totalPages != 0) {
+			episodes = episodeData.getContent();
+
+			List<SearchEpisode> searchEpisodes = episodes.stream()
+		            .map(e -> updateSearchEpisode((Episode) e))
+		            .collect(Collectors.toList());
+			episodeSearchService.saveAll(searchEpisodes);
+			
+			//page += 1;
+			paging = PageRequest.of(page, size);
+			episodeData = episodeService.findByIsIndexed(false, paging);
+			totalPages = episodeData.getTotalPages();
+
+		}
+		
+		Long endTime = System.currentTimeMillis();
+		System.out.println("Indexed episodes: " + (endTime - startTime) + " milliseconds");
+		String response = "Indexed " + totalResults + " episodes in " + (endTime - startTime) + " milliseconds";
+		return new ResponseEntity<>(response, HttpStatus.CREATED);
+	}
+	
+	// DELETE INDEX AND REBUILD ENTIRE EPISODE INDEX
 	@GetMapping("/search/rebuild/index/episodes")
 	public ResponseEntity<String> rebuildSearchEpisodeIndex() {
-		elasticsearchTemplate.indexOps(IndexCoordinates.of("search_episodes")).delete();
+		elasticsearchTemplate.indexOps(IndexCoordinates.of("search_episodes")).delete();  // TODO: 
 
 		Long startTime = System.currentTimeMillis();
 		List<Episode> episodes = new ArrayList<Episode>();
@@ -200,15 +260,76 @@ public class SearchController {
 
 		Long startTime = System.currentTimeMillis();
 		List<Station> stations = new ArrayList<Station>();
-		stations = stationService.findAll();
-		List<SearchStation> searchStations = stations.stream()
-	            .map(e -> updateSearchStation((Station) e))
-	            .collect(Collectors.toList());
-		stationSearchService.saveAll(searchStations);
+		
+		Integer page = 0;
+		Integer size = 1000;
+		Integer totalPages = 0;
+		Long totalResults = 0L;
+		
+		Pageable paging = PageRequest.of(page, size);
+		Boolean isPublished = true;
+		Page<Station> stationData = stationService.findAllByPublished(paging, isPublished);
+		totalPages = stationData.getTotalPages();
+		totalResults = stationData.getTotalElements();
+		
+		while(page < totalPages) {
+			
+			stations = stationData.getContent();
+			List<SearchStation> searchStations = stations.stream()
+		            .map(e -> updateSearchStation((Station) e))
+		            .collect(Collectors.toList());
+			stationSearchService.saveAll(searchStations);
+			
+			page += 1;
+			paging = PageRequest.of(page, size);
+			stationData = stationService.findAllByPublished(paging, isPublished);
+		
+		}
 		Long endTime = System.currentTimeMillis();
 		System.out.println("Indexed stations: " + (endTime - startTime) + " milliseconds");
-		String response = "Indexed " + searchStations.size() + " stations in " + (endTime - startTime) + " milliseconds";
+		String response = "Indexed " + totalResults + " stations in " + (endTime - startTime) + " milliseconds";
 		return new ResponseEntity<>(response, HttpStatus.CREATED);		
+	}
+	
+	@GetMapping("/search/rebuild/index/audiobooks")
+	public ResponseEntity<String> rebuildSearchAudiobookIndex() {
+		elasticsearchTemplate.indexOps(IndexCoordinates.of("search_audiobooks")).delete();
+		elasticsearchTemplate.indexOps(IndexCoordinates.of("search_authors")).delete();
+		elasticsearchTemplate.indexOps(IndexCoordinates.of("search_chapters")).delete();
+		elasticsearchTemplate.indexOps(IndexCoordinates.of("search_statistics")).delete();
+
+		Long startTime = System.currentTimeMillis();
+		List<Book> audiobooks = new ArrayList<Book>();
+		
+		Integer page = 0;
+		Integer size = 1000;
+		Integer totalPages = 0;
+		Long totalResults = 0L;
+
+		Pageable paging = PageRequest.of(page, size);
+		Page<Book> audiobooksData = bookService.findAll(paging);
+		totalPages = audiobooksData.getTotalPages();
+		totalResults = audiobooksData.getTotalElements();
+		
+		while(page < totalPages) {
+		
+			audiobooks = audiobooksData.getContent();
+			List<SearchAudiobook> searchAudiobooks = audiobooks.stream()
+		            .map(e -> updateSearchAudiobook((Book) e))
+		            .collect(Collectors.toList());
+			audiobookSearchService.saveAll(searchAudiobooks);
+			
+			page += 1;
+			paging = PageRequest.of(page, size);
+			audiobooksData = bookService.findAll(paging);
+
+		}
+		
+		Long endTime = System.currentTimeMillis();
+		System.out.println("Indexed audiobooks: " + (endTime - startTime) + " milliseconds");
+		String response = "Indexed " + totalResults + " audiobooks in " + (endTime - startTime) + " milliseconds";
+		return new ResponseEntity<>(response, HttpStatus.CREATED);
+		
 	}
 	
 	@GetMapping("/search/episodes")
@@ -304,6 +425,37 @@ public class SearchController {
 		}
 	}
 	
+	@GetMapping("/search/audiobooks")
+	public ResponseEntity<SearchAudiobookResult> getAudiobookByMultiMatch(
+				@RequestParam(required = true) String q,
+				@RequestParam(required = false, value = "from", defaultValue = "0") Integer page,
+				@RequestParam(required = false, value = "size", defaultValue = "20") Integer size			
+			) {
+		try {
+			List<SearchAudiobook> audiobooks = new ArrayList<SearchAudiobook>();
+			List<String> fields = new ArrayList<String>();
+			fields.add("title");
+			fields.add("description");
+			fields.add("categories");
+			fields.add("chapters");
+			SearchResponse<SearchAudiobook> response = audiobookSearchService.multiMatch(q, fields, page, size);
+			List<Hit<SearchAudiobook>> listOfHits = response.hits().hits();
+			Long totalResults = response.hits().total().value();
+			for(Hit<SearchAudiobook>  hit : listOfHits){
+				SearchAudiobook sa = hit.source();
+				sa.setId(sa.getId());
+				audiobooks.add(sa);  
+			}
+			SearchAudiobookResult searchAudiobookResult = new SearchAudiobookResult(totalResults, audiobooks);
+
+			return new ResponseEntity<>(searchAudiobookResult, HttpStatus.OK);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
 	private SearchEpisode updateSearchEpisode(Episode ep) {
 		SearchEpisode episode = new SearchEpisode ();
 		try {
@@ -315,6 +467,10 @@ public class SearchController {
 			episode.setDescription(ep.getDescription());
 		    episode.setDuration(ep.getDuration());
 			episode.setPodcast(updateSearchPodcast(ep.getPodcast()));
+			
+			ep.setIsIndexed(true);
+			System.out.println("Saved searchEpisode guid " + ep.getGuid() + " and set is_indexed to true");
+			episodeService.save(ep);
 		}
 		catch(Exception ex) {
 			System.out.println("Episode id, guid, title: " + ep.getId() + "::" + ep.getGuid() + "::" + ep.getTitle());
@@ -328,6 +484,8 @@ public class SearchController {
 		searchPodcast.setId(podcast.getId());
 		searchPodcast.setAuthor(podcast.getAuthor());
 		searchPodcast.setTitle(podcast.getTitle());
+		searchPodcast.setGuid(podcast.getGuid());
+		searchPodcast.setRank(podcast.getRank());
 		searchPodcast.setDescription(podcast.getDescription());
 		searchPodcast.setFeedURL(podcast.getFeedURL());
 		searchPodcast.setArtworkURL(podcast.getArtworkURL());
@@ -357,6 +515,7 @@ public class SearchController {
 		searchStation.setCountry(station.getCountry());
 		searchStation.setLanguage(station.getLanguage());
 		searchStation.setImageUrl(station.getImageUrl());
+		searchStation.setPublished(station.getPublished());
 		for(Category category : station.getCategories()) {
 			SearchCategory sc = new SearchCategory();
 			sc.setName(category.getName());
@@ -364,6 +523,60 @@ public class SearchController {
 		}
 		
 		return searchStation;
+	
+	}
+	
+	private SearchAudiobook updateSearchAudiobook(Book book) {
+		SearchAudiobook searchAudiobook = new SearchAudiobook();
+		searchAudiobook.setId(book.getId());
+		searchAudiobook.setTitle(book.getTitle());
+		searchAudiobook.setGuid(book.getGuid());
+		searchAudiobook.setDescription(book.getDescription());
+		searchAudiobook.setCopyrightYear(book.getCopyrightYear());
+		searchAudiobook.setCreatedAt(book.getCreatedAt());
+		searchAudiobook.setDownloadUrl(book.getDownloadUrl());
+		searchAudiobook.setFeedUrl(book.getFeedUrl());
+		searchAudiobook.setImageUrl(book.getImageUrl());
+		searchAudiobook.setInfoUrl(book.getInfoUrl());
+		searchAudiobook.setLanguage(book.getLanguage());
+		searchAudiobook.setProjectUrl(book.getProjectUrl());
+		searchAudiobook.setTotalTimeSeconds(book.getTotalTimeSeconds());
+		searchAudiobook.setUpdatedAt(book.getUpdatedAt());
+		
+		for(Author author : book.getAuthors()) {
+			SearchAuthor sa = new SearchAuthor();
+			sa.setFirstName(author.getFirstName());
+			sa.setLastName(author.getLastName());
+			sa.setDob(author.getDob());
+			sa.setDod(author.getDod());
+			searchAudiobook.getAuthors().add(sa);
+		}
+		
+		for(Category category : book.getCategories()) {
+			SearchCategory sc = new SearchCategory();
+			sc.setName(category.getName());
+			searchAudiobook.getCategories().add(sc);
+		}
+		
+		for(Chapter chapter : book.getChapters()) {
+			SearchChapter sc = new SearchChapter();
+			sc.setTitle(chapter.getTitle());
+			sc.setGuid(chapter.getGuid());
+			sc.setPlayUrl(chapter.getPlayUrl());
+			sc.setExplicit(chapter.getExplicit());
+			sc.setDuration(chapter.getDuration());
+			searchAudiobook.getChapters().add(sc);
+		}
+		
+		Statistic statistic = book.getStatistic();
+		if (statistic != null) {
+			SearchStatistic ss = new SearchStatistic();
+			ss.setStatisticType(StatisticType.AUDIOBOOK);
+			ss.setViews(statistic.getViews());
+		searchAudiobook.setStatistic(null);
+		}
+		
+		return searchAudiobook;
 	
 	}
 }
