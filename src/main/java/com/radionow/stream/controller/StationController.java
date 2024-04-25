@@ -25,13 +25,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.radionow.stream.model.Episode;
-import com.radionow.stream.model.Podcast;
 import com.radionow.stream.model.Station;
 import com.radionow.stream.model.Statistic;
 import com.radionow.stream.model.Statistic.StatisticType;
-import com.radionow.stream.repository.StationRepository;
-import com.radionow.stream.search.model.SearchPodcast;
 import com.radionow.stream.service.StationService;
 
 @CrossOrigin(origins = "http://localhost:8081")
@@ -77,6 +73,7 @@ public class StationController {
 		int end = -1;
 		String[] output = {};
 		if (range != null) {
+			// range [0,9]
 			output = range.replace("[", "").replace("]", "").split(",");
 			start = Integer.valueOf(output[0]);
 			end = Integer.valueOf(output[1]);
@@ -92,7 +89,7 @@ public class StationController {
 		Pageable paging = PageRequest.of(page, size, Sort.by("statistic.rbVotes").descending());
 		Boolean isPublished = true;
 		Page<Station> stationData = stationService.findAllByPublished(paging, isPublished);
-		long totalResults = stationData.getTotalElements();
+		long totalResults = (stationData != null) ? stationData.getTotalElements() : 0L;
 		if (start > -1) {
 			responseHeaders.set("Content-Range", "stations="+start+"-"+end+"/"+totalResults);
 		}
@@ -101,7 +98,7 @@ public class StationController {
         responseHeaders.set("Access-Control-Expose-Headers", "Content-Range");
 
 		
-		if (!stationData.isEmpty()) {
+		if (stationData != null) {
 			//return new ResponseEntity<>(stationData.getContent(), HttpStatus.OK);
 	        return ResponseEntity.ok().headers(responseHeaders).body(stationData.getContent());
 

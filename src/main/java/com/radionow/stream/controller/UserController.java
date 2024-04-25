@@ -28,8 +28,6 @@ import com.radionow.stream.model.FavoriteStation;
 import com.radionow.stream.model.Podcast;
 import com.radionow.stream.model.Station;
 import com.radionow.stream.model.User;
-import com.radionow.stream.model.UserView;
-import com.radionow.stream.model.ViewType;
 import com.radionow.stream.repository.FavoriteBookRepository;
 import com.radionow.stream.repository.FavoriteEpisodeRepository;
 import com.radionow.stream.repository.FavoritePodcastRepository;
@@ -163,7 +161,7 @@ public class UserController {
 	}
 	
 	@GetMapping("/users/{id}/favorites/stations/{sid}")
-	public ResponseEntity<Station> setFavoriteStationUserIdStationId(@PathVariable("id") Long id, @PathVariable("sid") Long sid) {
+	public ResponseEntity<FavoriteStation> setFavoriteStationUserIdStationId(@PathVariable("id") Long id, @PathVariable("sid") Long sid) {
 		try {
 			 FavoriteStation favorite = new FavoriteStation();
 			 Station station = stationService.findById(sid).get();
@@ -171,7 +169,7 @@ public class UserController {
 			 favorite.setStation(station);
 			 
 			 FavoriteStation fs = favoriteStationRepository.save(favorite);
-			 return new ResponseEntity<>(station, HttpStatus.OK);
+			 return new ResponseEntity<>(fs, HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -209,7 +207,7 @@ public class UserController {
 	}
 	
 	@GetMapping("/users/{id}/favorites/books/{bid}")
-	public ResponseEntity<Book> setFavoriteBookUserIdBookId(@PathVariable("id") Long id, @PathVariable("bid") Long bid) {
+	public ResponseEntity<FavoriteBook> setFavoriteBookUserIdBookId(@PathVariable("id") Long id, @PathVariable("bid") Long bid) {
 		try {
 			 FavoriteBook favorite = new FavoriteBook();
 			 Book book = bookService.findById(bid);
@@ -217,7 +215,7 @@ public class UserController {
 			 favorite.setBook(book);
 			 
 			 FavoriteBook fb = favoriteBookRepository.save(favorite);
-			 return new ResponseEntity<>(book, HttpStatus.OK);
+			 return new ResponseEntity<>(fb, HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -254,7 +252,7 @@ public class UserController {
 	}
 	
 	@GetMapping("/users/{id}/favorites/episodes/{guid}")
-	public ResponseEntity<Episode> setFavoriteEpisodeUserIdEpisodeId(@PathVariable("id") Long id, @PathVariable("guid") String guid) {
+	public ResponseEntity<FavoriteEpisode> setFavoriteEpisodeUserIdEpisodeId(@PathVariable("id") Long id, @PathVariable("guid") String guid) {
 		try {
 			 FavoriteEpisode favorite = new FavoriteEpisode();
 			 System.out.println("Guid: " + guid);
@@ -266,7 +264,7 @@ public class UserController {
 			 favorite.setEpisode(episode);
 			 System.out.println("Saving favorite episode: " + favorite);
 			 FavoriteEpisode fe = favoriteEpisodeRepository.save(favorite);
-			 return new ResponseEntity<>(episode, HttpStatus.OK);
+			 return new ResponseEntity<>(fe, HttpStatus.OK);
 		} catch (Exception e) {
 			System.out.println(e);
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -312,7 +310,7 @@ public class UserController {
 	}
 	
 	@GetMapping("/users/{id}/favorites/podcasts/{pid}")
-	public ResponseEntity<Podcast> setFavoritePodcastUserIdPodcastId(@PathVariable("id") Long id, @PathVariable("pid") Long pid) {
+	public ResponseEntity<FavoritePodcast> setFavoritePodcastUserIdPodcastId(@PathVariable("id") Long id, @PathVariable("pid") Long pid) {
 		
 		try {
 			FavoritePodcast favorite = new FavoritePodcast();
@@ -321,7 +319,7 @@ public class UserController {
 			favorite.setPodcast(podcast);
 			 
 			FavoritePodcast fp = favoritePodcastRepository.save(favorite);
-			return new ResponseEntity<>(podcast, HttpStatus.OK);
+			return new ResponseEntity<>(fp, HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}

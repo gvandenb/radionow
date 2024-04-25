@@ -1,16 +1,10 @@
 package com.radionow.stream.controller;
 
 import java.io.IOException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -18,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -39,9 +32,6 @@ import com.radionow.stream.model.Station;
 import com.radionow.stream.model.Statistic;
 import com.radionow.stream.model.Statistic.StatisticType;
 import com.radionow.stream.repository.CategoryRepository;
-import com.radionow.stream.search.model.SearchCategory;
-import com.radionow.stream.search.model.SearchEpisode;
-import com.radionow.stream.search.model.SearchPodcast;
 import com.radionow.stream.search.service.EpisodeSearchService;
 import com.radionow.stream.search.service.PodcastSearchService;
 import com.radionow.stream.service.BookService;
@@ -59,8 +49,6 @@ import com.rometools.rome.io.FeedException;
 import de.sfuhrm.radiobrowser4j.AdvancedSearch;
 import de.sfuhrm.radiobrowser4j.ConnectionParams;
 import de.sfuhrm.radiobrowser4j.EndpointDiscovery;
-import de.sfuhrm.radiobrowser4j.FieldName;
-import de.sfuhrm.radiobrowser4j.ListParameter;
 import de.sfuhrm.radiobrowser4j.RadioBrowser;
 
 @CrossOrigin(origins = "http://localhost:8081")
@@ -237,6 +225,7 @@ public class FeedController {
 					final Podcast pod = dbPodcast;
 					for (SyndEntry e : feed.getEntries()) {
 						if (e.getPublishedDate().after(lastPubDate)) {
+							@SuppressWarnings("unused")
 							Episode ep = createEpisode((SyndEntry) e, pod);
 							updatedEpisodeCount++;
 						}
@@ -351,6 +340,8 @@ public class FeedController {
 			try {
 				
 				final Podcast pod = dbPodcast;	
+				
+				@SuppressWarnings("unused")
 				List<Episode> episodes = (List<Episode>) feed.getEntries().stream()
 		            .map(e -> createEpisode((SyndEntry) e, pod))
 		            .collect(Collectors.toList());
@@ -374,7 +365,7 @@ public class FeedController {
 	@GetMapping("/feed/stations")
 	public ResponseEntity<String> fetchStations() {
 		String  response = "";
-		List<Station> stationList = new ArrayList<Station>();
+		//List<Station> stationList = new ArrayList<Station>();
 	
 		// discover endpoint
 		Optional<String> endpoint = null;

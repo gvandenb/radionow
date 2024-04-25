@@ -8,8 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.radionow.stream.model.User;
-import com.radionow.stream.model.UserView;
-import com.radionow.stream.model.ViewType;
 import com.radionow.stream.repository.UserRepository;
 
 @Service

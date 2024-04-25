@@ -7,9 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.radionow.stream.model.FeaturedPodcast;
-import com.radionow.stream.model.FeaturedStation;
 import com.radionow.stream.repository.FeaturedPodcastRepository;
-import com.radionow.stream.repository.FeaturedStationRepository;
 
 @Service
 public class FeaturedPodcastServiceImpl implements FeaturedPodcastService {

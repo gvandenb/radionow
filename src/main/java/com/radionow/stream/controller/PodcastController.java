@@ -3,7 +3,6 @@ package com.radionow.stream.controller;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -25,13 +24,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.radionow.stream.model.Episode;
 import com.radionow.stream.model.Podcast;
-import com.radionow.stream.model.Station;
 import com.radionow.stream.model.Statistic;
 import com.radionow.stream.model.Statistic.StatisticType;
-import com.radionow.stream.search.model.SearchEpisode;
-import com.radionow.stream.search.model.SearchPodcast;
-import com.radionow.stream.search.service.EpisodeSearchService;
-import com.radionow.stream.search.service.PodcastSearchService;
 import com.radionow.stream.service.EpisodeService;
 import com.radionow.stream.service.PodcastService;
 
@@ -80,10 +74,7 @@ public class PodcastController {
 			@RequestParam(defaultValue = "0") int page,
 	        @RequestParam(defaultValue = "10") int size) {
 		try {
-			
-			List<Podcast> podcasts = new ArrayList<Podcast>();
 
-			
 			Pageable paging = PageRequest.of(page, size, Sort.by("rank").ascending());
 			//Pageable paging = PageRequest.of(page, size, Sort.by("lastPubDate").descending());
 			Page<Podcast> podcastData = podcastService.findAll(paging);

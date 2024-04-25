@@ -21,7 +21,8 @@ public class FetchFeed {
 	public static SyndFeed readFeed(String url) throws IOException, FeedException {
         URL feedSource = new URL(url);
         SyndFeedInput input = new SyndFeedInput();
-        return input.build(new XmlReader(feedSource));
+        //return input.build(new XmlReader(feedSource));
+        return input.build(new XmlReader(feedSource.openStream()));
     }
 	
 

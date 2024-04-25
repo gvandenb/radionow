@@ -4,7 +4,6 @@ import java.util.Date;
 import java.util.List;
 
 import com.radionow.stream.model.FeaturedAudiobook;
-import com.radionow.stream.model.FeaturedStation;
 
 public interface FeaturedAudiobookService {
 

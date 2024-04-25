@@ -1,12 +1,12 @@
 package com.radionow.stream.util;
 
+import java.util.List;
+import java.util.function.Supplier;
+
 import co.elastic.clients.elasticsearch._types.query_dsl.MultiMatchQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Operator;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import lombok.val;
-
-import java.util.List;
-import java.util.function.Supplier;
 
 public class ESUtil
 {

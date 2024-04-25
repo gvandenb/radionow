@@ -3,10 +3,7 @@ package com.radionow.stream.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.data.elasticsearch.annotations.Document;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.radionow.stream.model.Statistic.StatisticType;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
