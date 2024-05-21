@@ -1,0 +1,10 @@
+{
+  getTopChartsByGenres(taddyType:PODCASTSERIES, genres:{genre}, page: {page}, limitPerPage: {size}){
+    topChartsId
+    podcastSeries{
+      uuid
+      name
+      rssUrl
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  getTopChartsByCountry(taddyType:PODCASTSERIES, country:UNITED_STATES_OF_AMERICA, page: {page}, limitPerPage: {limit}){
+    topChartsId
+    podcastSeries{
+      uuid
+      name
+      rssUrl
+    }
+
+  }
+}
