@@ -1,6 +1,7 @@
 package com.radionow.stream.controller;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -379,8 +380,9 @@ public class FeedController {
 		if (endpoint != null) {
 			// build instance
 			RadioBrowser radioBrowser = new RadioBrowser(
-			    ConnectionParams.builder().apiUrl(endpoint.get()).userAgent("Demo agent/1.0").timeout(50000).build());
+			    ConnectionParams.builder().apiUrl(endpoint.get()).userAgent("Demo agent/1.0").timeout(500000).build());
 	
+			/*
 			
 			AdvancedSearch advancedSearch = AdvancedSearch.builder()
 					.countryCode("US").build();
@@ -401,9 +403,9 @@ public class FeedController {
 		            .collect(Collectors.toList());
 			
 			response += "Inserted " + topClickStations.size() + " Top Click stations.\n";
-
+*/
 			
-			Stream<de.sfuhrm.radiobrowser4j.Station> topVoteStream = radioBrowser.listTopVoteStations().limit(5000);
+			Stream<de.sfuhrm.radiobrowser4j.Station> topVoteStream = radioBrowser.listTopVoteStations().limit(48017);
 			List<Station> topVoteStations = topVoteStream
 	        		//.limit(2)
 		            .map(e -> updateStation((de.sfuhrm.radiobrowser4j.Station) e))
@@ -562,6 +564,18 @@ public class FeedController {
 			station.setLanguage(s.getLanguage());
 			station.setImageUrl(s.getFavicon());
 			
+			if (s.getTagList() != null) {
+				s.getTagList().forEach(e -> {
+					Category dbCat = categoryRepository.findByName(e, Limit.of(1));
+					if (dbCat != null) {
+						station.getCategories().add(dbCat);
+					}
+					else {
+						station.getCategories().add(new Category(e));
+					}						
+				});
+			}
+			
 			Statistic stats = new Statistic();
 			//stats.setViews(100L);
 			stats.setRbClicks(s.getClickcount());	
@@ -569,7 +583,14 @@ public class FeedController {
 			stats.setStatisticType(StatisticType.STATION);
 			station.setStatistic(stats);
 			
-			updatedStation = stationService.save(station);
+			System.out.println("Saved new station: " + station.getTitle());
+
+			if (station.getUrl().length() > 4000) {
+				System.out.println("Station URL too long... skipping " + station.getTitle());
+			}
+			else {
+				updatedStation = stationService.save(station);
+			}
 		}
 		else {
 			Statistic stats = dbStation.getStatistic();
@@ -592,6 +613,23 @@ public class FeedController {
 			stats.setStatisticType(StatisticType.STATION);
 			dbStation.setStatistic(stats);
 			
+			if (dbStation.getCategories() == null) {
+				List<Category> categoryList = new ArrayList<Category>();
+				dbStation.setCategories(categoryList);
+			}
+			
+			if (s.getTagList() != null) {
+				s.getTagList().forEach(e -> {
+					Category dbCat = categoryRepository.findByName(e, Limit.of(1));
+					if (dbCat != null) {
+						dbStation.getCategories().add(dbCat);
+					}
+					else {
+						dbStation.getCategories().add(new Category(e));
+					}						
+				});
+			}
+			System.out.println("Updated station: " + dbStation.getTitle());
 			updatedStation = stationService.save(dbStation);
 
 		}

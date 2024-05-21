@@ -72,6 +72,9 @@ public class Station {
 	@Column(length = 4096, name = "imageUrl")
 	private String imageUrl;
 	
+	@Column(length = 4096, name = "metadataUrl")
+	private String metadataUrl;
+	
 	@Column(name = "published")
 	private Boolean published;
 	

@@ -39,14 +39,19 @@ public class StationController {
 	StationService stationService;
 
 	@GetMapping("/stations/categories")
-	public ResponseEntity<List<Station>> getAllStationsByCategoryName(@RequestParam(required = true) String name, @RequestParam(required = true) String sort) {
+	public ResponseEntity<List<Station>> getAllStationsByCategoryName(
+			@RequestParam(required = true) String name, 
+			@RequestParam(defaultValue = "0") int page,
+	        @RequestParam(defaultValue = "10") int size,
+			@RequestParam(required = true) String sort) {
 		try {
 			
 			List<Station> stations = new ArrayList<Station>();
 
-			Pageable paging = PageRequest.of(0, 10, Sort.by(sort).descending());
+			Pageable paging = PageRequest.of(page, size, Sort.by(sort).descending());
 			Boolean isPublished = true;
-			stations = stationService.findByCategoriesNameAndPublished(name, paging, isPublished);
+			//stations = stationService.findByCategoriesNameAndPublished(name, paging, isPublished);
+			stations = stationService.findByCategoriesNameAndCountryAndPublished(name, "US", isPublished, paging).getContent();
 
 			System.out.println("Station category search for: " + name);
 			if (stations.isEmpty()) {

@@ -545,6 +545,7 @@ public class SearchController {
 		
 		for(Author author : book.getAuthors()) {
 			SearchAuthor sa = new SearchAuthor();
+			sa.setId(author.getId());
 			sa.setFirstName(author.getFirstName());
 			sa.setLastName(author.getLastName());
 			sa.setDob(author.getDob());
@@ -554,12 +555,14 @@ public class SearchController {
 		
 		for(Category category : book.getCategories()) {
 			SearchCategory sc = new SearchCategory();
+			sc.setId(category.getId());
 			sc.setName(category.getName());
 			searchAudiobook.getCategories().add(sc);
 		}
 		
 		for(Chapter chapter : book.getChapters()) {
 			SearchChapter sc = new SearchChapter();
+			sc.setId(chapter.getId());
 			sc.setTitle(chapter.getTitle());
 			sc.setGuid(chapter.getGuid());
 			sc.setPlayUrl(chapter.getPlayUrl());
@@ -571,6 +574,7 @@ public class SearchController {
 		Statistic statistic = book.getStatistic();
 		if (statistic != null) {
 			SearchStatistic ss = new SearchStatistic();
+			ss.setId(statistic.getId());
 			ss.setStatisticType(StatisticType.AUDIOBOOK);
 			ss.setViews(statistic.getViews());
 		searchAudiobook.setStatistic(null);

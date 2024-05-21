@@ -22,6 +22,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.radionow.stream.client.PodcastClient;
+import com.radionow.stream.data.PodcastGraphqlDto;
+import com.radionow.stream.data.PodcastDto;
 import com.radionow.stream.model.Episode;
 import com.radionow.stream.model.Podcast;
 import com.radionow.stream.model.Statistic;
@@ -40,6 +43,9 @@ public class PodcastController {
 	
 	@Autowired
 	EpisodeService episodeService;
+	
+	@Autowired
+	PodcastClient podcastClient;
 
 	@GetMapping("/podcasts/categories")
 	public ResponseEntity<List<Podcast>> getAllPodcastsByCategoryName(@RequestParam(required = true) String name, 
@@ -192,6 +198,27 @@ public class PodcastController {
 		}
 	}
 	
-	
+	@GetMapping("/podcasts/charts")
+	public ResponseEntity<List<PodcastDto>> getTopChartsByGenres(
+			@RequestParam(defaultValue = "PODCASTSERIES_TRUE_CRIME") String genre,
+			@RequestParam(defaultValue = "1") Integer page,
+	        @RequestParam(defaultValue = "25") Integer size) {
+
+		/*
+		 * 1. get 25 results (paginated) from taddy.org (page:1, limit:25)
+		 * 2. update radionow postgresql
+		 * 3. adjust Apple podcast rank (either category rank or podcast rank??)
+		 *  
+		 */
+		
+		try {
+			PodcastGraphqlDto podcastData = podcastClient.getTopChartsByGenres(genre, page, size);
+			List<PodcastDto> podcastList = podcastData.getData().getGetTopChartsByGenres().getPodcastSeries();
+			return new ResponseEntity<>(podcastList, HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+	}
 
 }

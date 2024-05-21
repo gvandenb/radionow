@@ -160,29 +160,37 @@ public class UserController {
 		return new ResponseEntity<>(stations, HttpStatus.OK);	
 	}
 	
-	@GetMapping("/users/{id}/favorites/stations/{sid}")
-	public ResponseEntity<FavoriteStation> setFavoriteStationUserIdStationId(@PathVariable("id") Long id, @PathVariable("sid") Long sid) {
+	@PutMapping("/users/{id}/favorites/stations/{sid}")
+	public ResponseEntity<Station> setFavoriteStationUserIdStationId(@PathVariable("id") Long id, @PathVariable("sid") Long sid) {
 		try {
 			 FavoriteStation favorite = new FavoriteStation();
 			 Station station = stationService.findById(sid).get();
+			 if (station == null) {
+				 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+			 }
+			 
 			 favorite.setUserId(id);
 			 favorite.setStation(station);
 			 
 			 FavoriteStation fs = favoriteStationRepository.save(favorite);
-			 return new ResponseEntity<>(fs, HttpStatus.OK);
+			 return new ResponseEntity<>(fs.getStation(), HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
 	@DeleteMapping("/users/{id}/favorites/stations/{sid}")
-	public ResponseEntity<String> deleteFavoriteStationUserIdStationId(@PathVariable("id") Long id, @PathVariable("sid") Long sid) {
+	public ResponseEntity<Long> deleteFavoriteStationUserIdStationId(@PathVariable("id") Long id, @PathVariable("sid") Long sid) {
 		try {
 			 
-			 FavoriteStation fs = favoriteStationRepository.findByUserIdAndStationId(id, sid);
+			FavoriteStation fs = favoriteStationRepository.findByUserIdAndStationId(id, sid);
 			 
-			 favoriteStationRepository.delete(fs);
-			 return new ResponseEntity<>("OK", HttpStatus.OK);
+			if (fs == null) {
+				return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+			}
+			favoriteStationRepository.delete(fs);
+			return new ResponseEntity<>(fs.getStation().getId(), HttpStatus.OK);
+			
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -206,29 +214,37 @@ public class UserController {
 		return new ResponseEntity<>(books, HttpStatus.OK);	
 	}
 	
-	@GetMapping("/users/{id}/favorites/books/{bid}")
-	public ResponseEntity<FavoriteBook> setFavoriteBookUserIdBookId(@PathVariable("id") Long id, @PathVariable("bid") Long bid) {
+	@PutMapping("/users/{id}/favorites/books/{bid}")
+	public ResponseEntity<Book> setFavoriteBookUserIdBookId(@PathVariable("id") Long id, @PathVariable("bid") Long bid) {
 		try {
 			 FavoriteBook favorite = new FavoriteBook();
 			 Book book = bookService.findById(bid);
+			 
+			 if (book == null) {
+				return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+			 }
 			 favorite.setUserId(id);
 			 favorite.setBook(book);
 			 
 			 FavoriteBook fb = favoriteBookRepository.save(favorite);
-			 return new ResponseEntity<>(fb, HttpStatus.OK);
+			 return new ResponseEntity<>(fb.getBook(), HttpStatus.OK);
+			 
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
 	@DeleteMapping("/users/{id}/favorites/books/{bid}")
-	public ResponseEntity<String> deleteFavoriteAudiobookUserIdBookId(@PathVariable("id") Long id, @PathVariable("bid") Long bid) {
+	public ResponseEntity<Long> deleteFavoriteAudiobookUserIdBookId(@PathVariable("id") Long id, @PathVariable("bid") Long bid) {
 		try {
 			 
 			 FavoriteBook fb = favoriteBookRepository.findByUserIdAndBookId(id, bid);
-			 
+			 if (fb == null) {
+				 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+			 }
 			 favoriteBookRepository.delete(fb);
-			 return new ResponseEntity<>("OK", HttpStatus.OK);
+			 return new ResponseEntity<>(fb.getBook().getId(), HttpStatus.OK);
+			 
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -251,20 +267,22 @@ public class UserController {
 		return new ResponseEntity<>(episodes, HttpStatus.OK);	
 	}
 	
-	@GetMapping("/users/{id}/favorites/episodes/{guid}")
-	public ResponseEntity<FavoriteEpisode> setFavoriteEpisodeUserIdEpisodeId(@PathVariable("id") Long id, @PathVariable("guid") String guid) {
+	@PutMapping("/users/{id}/favorites/episodes/{guid}")
+	public ResponseEntity<Episode> setFavoriteEpisodeUserIdEpisodeId(@PathVariable("id") Long id, @PathVariable("guid") String guid) {
 		try {
 			 FavoriteEpisode favorite = new FavoriteEpisode();
-			 System.out.println("Guid: " + guid);
 			 String result = java.net.URLDecoder.decode(guid, StandardCharsets.UTF_8);
-			 System.out.println("Guid: " + result);
 
 			 Episode episode = episodeService.findByGuid(result);
+			 if (episode == null) {
+				 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+			 }
 			 favorite.setUserId(id);
 			 favorite.setEpisode(episode);
-			 System.out.println("Saving favorite episode: " + favorite);
 			 FavoriteEpisode fe = favoriteEpisodeRepository.save(favorite);
-			 return new ResponseEntity<>(fe, HttpStatus.OK);
+			 
+			 return new ResponseEntity<>(fe.getEpisode(), HttpStatus.OK);
+			 
 		} catch (Exception e) {
 			System.out.println(e);
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -272,7 +290,7 @@ public class UserController {
 	}
 	
 	@DeleteMapping("/users/{id}/favorites/episodes/{guid}")
-	public ResponseEntity<String> deleteFavoriteEpisodeUserIdEpisodeId(@PathVariable("id") Long id, @PathVariable("guid") String guid) {
+	public ResponseEntity<Long> deleteFavoriteEpisodeUserIdEpisodeId(@PathVariable("id") Long id, @PathVariable("guid") String guid) {
 		try {
 			String result = java.net.URLDecoder.decode(guid, StandardCharsets.UTF_8);
 			Episode episode = episodeService.findByGuid(result);
@@ -282,9 +300,12 @@ public class UserController {
 			}
 			else {
 				FavoriteEpisode fe = favoriteEpisodeRepository.findByUserIdAndEpisodeId(id, episode.getId());
-			 
+				if (fe == null) {
+					return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+
+				}
 				favoriteEpisodeRepository.delete(fe);
-				return new ResponseEntity<>("OK", HttpStatus.OK);
+				return new ResponseEntity<>(fe.getEpisode().getId(), HttpStatus.OK);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -309,30 +330,38 @@ public class UserController {
 		return new ResponseEntity<>(podcasts, HttpStatus.OK);	
 	}
 	
-	@GetMapping("/users/{id}/favorites/podcasts/{pid}")
-	public ResponseEntity<FavoritePodcast> setFavoritePodcastUserIdPodcastId(@PathVariable("id") Long id, @PathVariable("pid") Long pid) {
+	@PutMapping("/users/{id}/favorites/podcasts/{pid}")
+	public ResponseEntity<Podcast> setFavoritePodcastUserIdPodcastId(@PathVariable("id") Long id, @PathVariable("pid") Long pid) {
 		
 		try {
 			FavoritePodcast favorite = new FavoritePodcast();
 			Podcast podcast = podcastService.findById(pid).get();
+			if (podcast == null) {
+				return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+
+			}
 			favorite.setUserId(id);
 			favorite.setPodcast(podcast);
 			 
 			FavoritePodcast fp = favoritePodcastRepository.save(favorite);
-			return new ResponseEntity<>(fp, HttpStatus.OK);
+			return new ResponseEntity<>(fp.getPodcast(), HttpStatus.OK);
+			
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
 	@DeleteMapping("/users/{id}/favorites/podcasts/{pid}")
-	public ResponseEntity<String> deleteFavoritePodcastUserIdPodcastId(@PathVariable("id") Long id, @PathVariable("pid") Long pid) {
+	public ResponseEntity<Long> deleteFavoritePodcastUserIdPodcastId(@PathVariable("id") Long id, @PathVariable("pid") Long pid) {
 		try {
 			 
 			FavoritePodcast fp = favoritePodcastRepository.findByUserIdAndPodcastId(id, pid);
-			 
+			if (fp == null) {
+				return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+
+			}
 			favoritePodcastRepository.delete(fp);
-			return new ResponseEntity<>("OK", HttpStatus.OK);
+			return new ResponseEntity<>(fp.getPodcast().getId(), HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}

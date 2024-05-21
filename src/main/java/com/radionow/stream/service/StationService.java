@@ -38,4 +38,7 @@ public interface StationService {
 
 	public List<Station> findByCategoriesNameAndPublished(String name, Pageable paging, Boolean isPublished);
 
+	public Page<Station> findByCategoriesNameAndCountryAndPublished(String name, String country, Boolean isPublished, Pageable paging);
+
+
 }
