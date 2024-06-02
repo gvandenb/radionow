@@ -58,6 +58,12 @@ public class UserAlarm {
 	@Column(length = 2048, name = "play_url")
     private String playUrl;
 	
+	@Column(length = 2048, name = "title")
+    private String title;
+	
+	@Column(length = 2048, name = "description")
+    private String description;
+	
 	@Column(name = "volume_level")
     private Double volumeLevel;
 	

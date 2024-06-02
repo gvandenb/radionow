@@ -42,7 +42,7 @@ public class UserAlarmServiceImpl implements UserAlarmService {
 	}
 
 	@Override
-	public UserAlarm getUserAlarmByUserIdAndDayOfWeek(Long userId, String dayOfWeek) {
+	public List<UserAlarm> getUserAlarmByUserIdAndDayOfWeek(Long userId, String dayOfWeek) {
 		// TODO Auto-generated method stub
 		return userAlarmRepository.getUserAlarmByUserIdAndDayOfWeek(userId, dayOfWeek);
 	}

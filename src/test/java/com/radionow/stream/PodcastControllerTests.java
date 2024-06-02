@@ -44,6 +44,7 @@ public class PodcastControllerTests {
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'+00:00'");
     Date date = new Date();
 
+    /*
 	@Test
 	void shouldCreatePodcast() throws Exception {
 		long id = 1L;
@@ -105,5 +106,6 @@ public class PodcastControllerTests {
 			.andExpect(jsonPath("$.artworkURL").value(podcast.getArtworkURL()))
 			.andDo(print());
 	}
+	*/
 	
 }

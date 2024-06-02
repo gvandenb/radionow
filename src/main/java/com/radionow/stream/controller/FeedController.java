@@ -306,8 +306,6 @@ public class FeedController {
 				ex.printStackTrace();
 			}
 			
-			
-			
 			// save Podcast to PosgreSQL
 			try {
 				System.out.println("Preparing to save podcast");

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.radionow.stream.data.GraphqlRequestBody;
+import com.radionow.stream.data.PodcastGraphqlCountryDto;
 import com.radionow.stream.data.PodcastGraphqlDto;
 import com.radionow.stream.util.GraphqlSchemaReaderUtil;
 
@@ -28,11 +29,7 @@ public class PodcastClient {
 	}
 
 	public PodcastGraphqlDto getTopChartsByGenres(String genre, Integer page, Integer size) throws IOException {
-		HttpClient httpClient = HttpClient.create()
-			      .wiretap(this.getClass().getCanonicalName(), LogLevel.DEBUG, AdvancedByteBufFormat.TEXTUAL);
-		ReactorClientHttpConnector conn = new ReactorClientHttpConnector(httpClient);  
-			
-		WebClient webClient = WebClient.builder().clientConnector(conn).build();
+		
 
 		GraphqlRequestBody graphQLRequestBody = new GraphqlRequestBody();
 
@@ -46,16 +43,71 @@ public class PodcastClient {
 		//graphQLRequestBody.setVariables(variables.replace("countryCode", countryCode));
 		System.out.println("Query: " + query);
 
+		PodcastGraphqlDto p = sendGenreRequest(graphQLRequestBody);
+		
+		System.out.println("P: " + p);
+		return p;
+	}
+	
+	// getTopChartsByCountry
+	public PodcastGraphqlCountryDto getTopChartsByCountry(String country, Integer page, Integer size) throws IOException {
 		
 
+		GraphqlRequestBody graphQLRequestBody = new GraphqlRequestBody();
+
+		final String query = GraphqlSchemaReaderUtil.getSchemaFromFileName("getTopChartsByCountry");
+		String countryToken = query.replace("{country}", country);
+		String pageToken = countryToken.replace("{page}", page.toString());
+		String tokenizedQuery = pageToken.replace("{size}", size.toString());
+		//final String variables = GraphqlSchemaReaderUtil.getSchemaFromFileName("variables");
+
+		graphQLRequestBody.setQuery(tokenizedQuery);
+		//graphQLRequestBody.setVariables(variables.replace("countryCode", countryCode));
+		System.out.println("Query: " + query);
+
+		PodcastGraphqlCountryDto p = sendCountryRequest(graphQLRequestBody);
+		
+		System.out.println("P: " + p);
+		return p;
+	}
+	
+	private PodcastGraphqlDto sendGenreRequest(GraphqlRequestBody requestBody) {
+		HttpClient httpClient = HttpClient.create()
+			      .wiretap(this.getClass().getCanonicalName(), LogLevel.DEBUG, AdvancedByteBufFormat.TEXTUAL);
+		ReactorClientHttpConnector conn = new ReactorClientHttpConnector(httpClient);  
+			
+		WebClient webClient = WebClient.builder().clientConnector(conn).build();
+		
 		PodcastGraphqlDto p = webClient
 				.post()
 				.uri(url)
 				.header("X-USER-ID", "1360")
 				.header("X-API-KEY", "0eb4f8a9a0386ba205cd7d8321703ac354efd0e5fb18b55e81942d18228a1103c3cd33da4551d56aa7066afdd2ef1fe34c")
-				.bodyValue(graphQLRequestBody)
+				.bodyValue(requestBody)
 				.retrieve()
 				.bodyToMono(PodcastGraphqlDto.class)
+				.block();
+		
+		
+		System.out.println("P: " + p);
+		return p;
+	}
+	
+	private PodcastGraphqlCountryDto sendCountryRequest(GraphqlRequestBody requestBody) {
+		HttpClient httpClient = HttpClient.create()
+			      .wiretap(this.getClass().getCanonicalName(), LogLevel.DEBUG, AdvancedByteBufFormat.TEXTUAL);
+		ReactorClientHttpConnector conn = new ReactorClientHttpConnector(httpClient);  
+			
+		WebClient webClient = WebClient.builder().clientConnector(conn).build();
+		
+		PodcastGraphqlCountryDto p = webClient
+				.post()
+				.uri(url)
+				.header("X-USER-ID", "1360")
+				.header("X-API-KEY", "0eb4f8a9a0386ba205cd7d8321703ac354efd0e5fb18b55e81942d18228a1103c3cd33da4551d56aa7066afdd2ef1fe34c")
+				.bodyValue(requestBody)
+				.retrieve()
+				.bodyToMono(PodcastGraphqlCountryDto.class)
 				.block();
 		
 		

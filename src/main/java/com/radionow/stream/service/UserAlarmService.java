@@ -15,5 +15,5 @@ public interface UserAlarmService {
 
 	void delete(UserAlarm ua);
 	
-	UserAlarm getUserAlarmByUserIdAndDayOfWeek(Long userId, String dayOfWeek);
+	List<UserAlarm> getUserAlarmByUserIdAndDayOfWeek(Long userId, String dayOfWeek);
 }

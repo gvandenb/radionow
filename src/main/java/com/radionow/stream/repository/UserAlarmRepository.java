@@ -19,10 +19,11 @@ public interface UserAlarmRepository extends JpaRepository<UserAlarm, Long> {
 	
 	@Query( value = "SELECT ua.* FROM user_alarms ua "
 			+ "WHERE ua.user_id = :userId "
+			+ "AND ua.enabled = true "
 			+ "AND ua.repeat_days LIKE CONCAT('%', :dayOfWeek, '%') "
-			+ "AND to_char(alarm_time,'HH24:MI:SS') > to_char(CURRENT_TIMESTAMP,'HH24:MI:SS') "
-			+ "ORDER BY to_char(ua.alarm_time,'HH24:MI:SS') ASC "
-			+ "LIMIT 1",
+			//+ "AND to_char(alarm_time,'HH24:MI:SS') > to_char(CURRENT_TIMESTAMP,'HH24:MI:SS') "
+			+ "ORDER BY to_char(ua.alarm_time,'HH24:MI:SS') ASC ",
+			//+ "LIMIT 1",
 			nativeQuery=true)
-	UserAlarm getUserAlarmByUserIdAndDayOfWeek(Long userId, String dayOfWeek);
+	List<UserAlarm> getUserAlarmByUserIdAndDayOfWeek(Long userId, String dayOfWeek);
 }

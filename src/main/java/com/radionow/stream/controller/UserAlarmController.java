@@ -2,8 +2,13 @@ package com.radionow.stream.controller;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
+import java.util.UUID;
 
+import org.joda.time.LocalTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,12 +22,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.radionow.stream.model.BookmarkPodcast;
+import com.radionow.stream.data.AlarmDto;
 import com.radionow.stream.model.UserAlarm;
 import com.radionow.stream.model.UserConfig;
 import com.radionow.stream.service.UserAlarmService;
 import com.radionow.stream.service.UserConfigService;
 import com.radionow.stream.service.UserService;
+
 
 @CrossOrigin(origins = "http://localhost:8081")
 @RestController
@@ -76,24 +82,92 @@ public class UserAlarmController {
 	}
 	
 	@GetMapping("/users/{uid}/alarms/next")
-	public ResponseEntity<UserAlarm> getNextUserAlarm(@PathVariable("uid") Long id) {
-
+	public ResponseEntity<AlarmDto> getNextUserAlarm(@PathVariable("uid") Long id) {
+		AlarmDto response = null;
 		for (int i=0; i<7; i++) {
 			DayOfWeek day = LocalDate.now().getDayOfWeek().plus(i);
 			System.out.println("Day of Week: " + StringUtils.capitalize(day.name().toLowerCase()));
 			String capitalizedDayOfWeek = StringUtils.capitalize(day.name().toLowerCase());
-			UserAlarm userAlarm = userAlarmService.getUserAlarmByUserIdAndDayOfWeek(id, capitalizedDayOfWeek);
-			if (userAlarm != null) {
-				System.out.println("Found 1 UserAlarm");
-				return new ResponseEntity<>(userAlarm, HttpStatus.OK);
+			
+			List<UserAlarm> userAlarmList = userAlarmService.getUserAlarmByUserIdAndDayOfWeek(id, capitalizedDayOfWeek);
+			System.out.println("Alarms for " + capitalizedDayOfWeek + ": " + userAlarmList.size());
+			// Today
+			if (i == 0) {
+				for (UserAlarm userAlarm : userAlarmList) {
+				
+					Calendar alarmTime = Calendar.getInstance();
+					alarmTime.setTime(userAlarm.getAlarmTime());
+					int alarmTimeHourOfDay = alarmTime.get(Calendar.HOUR_OF_DAY);
+					int alarmTimeMinute = alarmTime.get(Calendar.MINUTE);
+					
+					Calendar timeNow = Calendar.getInstance();
+					int timeNowHourOfDay = timeNow.get(Calendar.HOUR_OF_DAY);
+					int timeNowMinute = timeNow.get(Calendar.MINUTE);
+					System.out.println("----------------------------------------");
+
+					System.out.println("alarmTimeHourOfDay: " + alarmTimeHourOfDay);
+					System.out.println("timeNowHourOfDay: " + timeNowHourOfDay);
+					System.out.println("alarmTimeMinute: " + alarmTimeMinute);
+					System.out.println("timeNowMinute: " + timeNowMinute);
+					if ((alarmTimeHourOfDay > timeNowHourOfDay) || alarmTimeHourOfDay == timeNowHourOfDay && alarmTimeMinute > timeNowMinute) {
+						// found next alarm on current day
+						response = processUserAlarm(userAlarm, day);
+						System.out.println("Found next alarm: " + response.getAlarmString());
+
+						break;
+					}
+				};
 			}
 			else {
-				System.out.println("Found 0 UserAlarm for " + capitalizedDayOfWeek);
+			// if response is still null, we have no alarms set for the rest of today
+			// need to grab first alarm from a subsequent day
+				if (userAlarmList.size() > 0) {
+					
+					response = processUserAlarm(userAlarmList.get(0), day);
+					System.out.println("Found next alarm: " + response.getAlarmString());
+
+					return new ResponseEntity<>(response, HttpStatus.OK);
+
+				}
+				
+			}
+			if (response != null) {
+				System.out.println("Returning alarm: " + response.getId());
+				return new ResponseEntity<>(response, HttpStatus.OK);
 
 			}
+			
 		}
+		
+		
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 
+	}
+	
+	private AlarmDto processUserAlarm(UserAlarm userAlarm, DayOfWeek day) {
+		AlarmDto alarm = new AlarmDto();
+		Date alarmTime = userAlarm.getAlarmTime();
+		//TimeZone americaPacific = TimeZone.getTimeZone("America/Los_Angeles");
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(alarmTime);
+		
+		int hour = cal.get(Calendar.HOUR);
+		int hourOfDay = cal.get(Calendar.HOUR_OF_DAY);
+		int minute = cal.get(Calendar.MINUTE);
+		String am_pm = (cal.get(Calendar.AM_PM) == 1) ? "PM" : "AM";
+		String time = ((hour == 0) ? "12":hour) + ":" + ((minute < 10) ? "0":"") + minute + " " + am_pm; 
+
+		alarm.setId(userAlarm.getId());
+		//alarm.setUuid(UUID.randomUUID().toString());
+		alarm.setDay(day.name().substring(0,3));
+		alarm.setHour(hour);
+		alarm.setHourOfDay(hourOfDay);
+		alarm.setMinute(minute);
+		alarm.setTimeOfDay(am_pm);
+		alarm.setAlarmString(day.name().substring(0,3) + ", " + time);
+		alarm.setUserAlarm(userAlarm);
+		
+		return alarm;
 	}
 
 }

@@ -88,6 +88,12 @@ public class PodcastServiceImpl implements PodcastService {
 		// TODO Auto-generated method stub
 		return podcastRepository.findByCategoriesNameOrderByLastPubDateDesc(categoryName, paging);
 	}
+
+	@Override
+	public void updatePodcastRank(int rank) {
+		// TODO Auto-generated method stub
+		podcastRepository.updateRank(rank);
+	}
 	
 	
 }

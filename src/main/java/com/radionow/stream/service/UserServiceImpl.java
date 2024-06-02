@@ -3,6 +3,7 @@ package com.radionow.stream.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,11 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public User save(User user) {
 		// TODO Auto-generated method stub
+		// uniquify searchterm list and maintain order
+		//List<String> searchtermList = ;
+		List<String> newSearchtermList = user.getSearchTerms().stream().distinct().collect(Collectors.toList());
+		user.setSearchTerms(newSearchtermList);
+
 		return userRepository.save(user);
 	}
 

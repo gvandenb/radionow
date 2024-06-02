@@ -4,7 +4,9 @@ import java.util.List;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.radionow.stream.model.Podcast;
 
@@ -21,4 +23,9 @@ public interface PodcastRepository extends JpaRepository<Podcast, Long> {
 	List<Podcast> findByCategoriesNameOrderByRankAsc(String categoryName, Pageable paging);
 
 	List<Podcast> findByCategoriesNameOrderByLastPubDateDesc(String categoryName, Pageable paging);
+	
+	@Modifying
+	@Transactional
+	@Query( value = "UPDATE podcasts set rank = :rank", nativeQuery=true)
+	void updateRank(int rank);
 }

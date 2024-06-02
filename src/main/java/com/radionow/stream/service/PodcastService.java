@@ -35,4 +35,5 @@ public interface PodcastService {
 
 	public List<Podcast> findByCategoriesNameOrderByLastPubDateDesc(String categoryName, Pageable paging);
 
+	public void updatePodcastRank(int rank);
 }
