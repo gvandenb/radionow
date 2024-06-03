@@ -21,8 +21,9 @@ import com.twilio.rest.verify.v2.service.VerificationCheck;
 public class AuthController {
 
 	
-	public static final String ACCOUNT_SID = "ACa437bddda03231c80f4c463dc51513bb";  // TODO: move to env var
-	public static final String AUTH_TOKEN = "db2b3771fb695775eb38d8e847d71915";		// TODO: move to env var
+	public static final String ACCOUNT_SID = "";  // TODO: move to env var
+	public static final String AUTH_TOKEN = "";		// TODO: move to env var
+	public static final String PATH_SERVICE_SID = "";
 	
 	@GetMapping("/auth/send")
 	public ResponseEntity<String> sendVerifyCode(@RequestParam(defaultValue = "0") String phoneNumber) {
@@ -30,15 +31,9 @@ public class AuthController {
 		try {
 			
 		    Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
-		    /*
+		    
 		    Verification verification = Verification.creator(
-		            "VA3326d2d0b4919afc0f53ebb9268593ee",
-		            "+14257502512",
-		            "sms")
-		        .create();
-		        */
-		    Verification verification = Verification.creator(
-		            "VA3326d2d0b4919afc0f53ebb9268593ee",
+		    		PATH_SERVICE_SID,
 		            "gvandenb@gmail.com",
 		            "email")
 		        .create();
@@ -59,27 +54,13 @@ public class AuthController {
 			User user = new User();
 			Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
 		    VerificationCheck verificationCheck = VerificationCheck.creator(
-		            "VA3326d2d0b4919afc0f53ebb9268593ee", code)
+		    		PATH_SERVICE_SID, code)
 		            .setTo("+14257502512")
 		        .create();
 
 		    System.out.println(verificationCheck.getSid());
 		    System.out.println(verificationCheck.getStatus());
-			 /*
-			  * {
-				  "status": "approved",
-				  "payee": null,
-				  "date_updated": "2024-05-03T21:17:02Z",
-				  "account_sid": "ACa437bddda03231c80f4c463dc51513bb",
-				  "to": "+14257502512",
-				  "amount": null,
-				  "valid": true,
-				  "sid": "VE96098d8da9b5c5c952443dd26e57c4fc",
-				  "date_created": "2024-05-03T21:14:45Z",
-				  "service_sid": "VA3326d2d0b4919afc0f53ebb9268593ee",
-				  "channel": "sms"
-				}
-			  */
+			 
 			return new ResponseEntity<>(user, HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
