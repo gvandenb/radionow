@@ -18,7 +18,6 @@ import reactor.netty.http.client.HttpClient;
 import reactor.netty.transport.logging.AdvancedByteBufFormat;
 
 @Service
-@Slf4j
 public class PodcastClient {
 
 	private final String url;
