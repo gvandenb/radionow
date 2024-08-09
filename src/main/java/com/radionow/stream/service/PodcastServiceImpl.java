@@ -86,7 +86,7 @@ public class PodcastServiceImpl implements PodcastService {
 	@Override
 	public List<Podcast> findByCategoriesNameOrderByLastPubDateDesc(String categoryName, Pageable paging) {
 		// TODO Auto-generated method stub
-		return podcastRepository.findByCategoriesNameOrderByLastPubDateDesc(categoryName, paging);
+		return podcastRepository.findByCategoriesNameOrderByLastPubDateDesc(categoryName, paging).getContent();
 	}
 
 	@Override

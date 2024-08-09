@@ -30,10 +30,15 @@ public class UserConfigController {
 	public ResponseEntity<UserConfig> createUserConfig(@PathVariable("uid") Long id, @RequestBody UserConfig userConfig) {
 		try {
 			
-			UserConfig savedUserConfig = userConfigService.save(userConfig);
+			UserConfig userConfigExisting = userConfigService.findUserConfigByUserId(id);
+			if (userConfigExisting == null) {
+				userConfig.setUserId(id);
+				userConfigExisting = userConfigService.save(userConfig);
+			}
 			
-			return new ResponseEntity<>(savedUserConfig, HttpStatus.OK);
+			return new ResponseEntity<>(userConfigExisting, HttpStatus.OK);
 		} catch (Exception e) {
+			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}

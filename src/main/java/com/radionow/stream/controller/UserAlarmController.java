@@ -95,10 +95,10 @@ public class UserAlarmController {
 			if (i == 0) {
 				for (UserAlarm userAlarm : userAlarmList) {
 				
-					Calendar alarmTime = Calendar.getInstance();
-					alarmTime.setTime(userAlarm.getAlarmTime());
-					int alarmTimeHourOfDay = alarmTime.get(Calendar.HOUR_OF_DAY);
-					int alarmTimeMinute = alarmTime.get(Calendar.MINUTE);
+					//Calendar alarmTime = Calendar.getInstance();
+					//alarmTime.setTime(userAlarm.getAlarmTime());
+					int alarmTimeHourOfDay = userAlarm.getAlarmHour();
+					int alarmTimeMinute = userAlarm.getAlarmMinute();
 					
 					Calendar timeNow = Calendar.getInstance();
 					int timeNowHourOfDay = timeNow.get(Calendar.HOUR_OF_DAY);
@@ -146,15 +146,16 @@ public class UserAlarmController {
 	
 	private AlarmDto processUserAlarm(UserAlarm userAlarm, DayOfWeek day) {
 		AlarmDto alarm = new AlarmDto();
-		Date alarmTime = userAlarm.getAlarmTime();
+		// 1 for Monday; 7 for Sunday
+		//Date alarmTime = userAlarm.getAlarmTime();
 		//TimeZone americaPacific = TimeZone.getTimeZone("America/Los_Angeles");
-		Calendar cal = Calendar.getInstance();
-		cal.setTime(alarmTime);
+		//Calendar cal = Calendar.getInstance();
+		//cal.setTime(alarmTime);
 		
-		int hour = cal.get(Calendar.HOUR);
-		int hourOfDay = cal.get(Calendar.HOUR_OF_DAY);
-		int minute = cal.get(Calendar.MINUTE);
-		String am_pm = (cal.get(Calendar.AM_PM) == 1) ? "PM" : "AM";
+		int hour = (userAlarm.getAlarmHour() > 12) ? userAlarm.getAlarmHour() - 12 : userAlarm.getAlarmHour();
+		int hourOfDay = userAlarm.getAlarmHour();
+		int minute = userAlarm.getAlarmMinute();
+		String am_pm = (userAlarm.getAlarmHour() > 11) ? "PM" : "AM";
 		String time = ((hour == 0) ? "12":hour) + ":" + ((minute < 10) ? "0":"") + minute + " " + am_pm; 
 
 		alarm.setId(userAlarm.getId());
@@ -164,6 +165,7 @@ public class UserAlarmController {
 		alarm.setHourOfDay(hourOfDay);
 		alarm.setMinute(minute);
 		alarm.setTimeOfDay(am_pm);
+		alarm.setDayOfWeek(day.getValue());
 		alarm.setAlarmString(day.name().substring(0,3) + ", " + time);
 		alarm.setUserAlarm(userAlarm);
 		

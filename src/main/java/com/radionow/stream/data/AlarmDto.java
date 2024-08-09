@@ -12,6 +12,7 @@ public class AlarmDto {
 	private Integer hour;
 	private Integer hourOfDay;
 	private Integer minute;
+	private Integer dayOfWeek;
 	private String timeOfDay;
 	private String alarmString;
 	private UserAlarm userAlarm;

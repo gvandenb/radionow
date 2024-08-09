@@ -99,8 +99,10 @@ public class StationServiceImpl implements StationService {
 	}
 	
 	@Override
-	public Page<Station> findByCategoriesNameAndCountryAndPublished(String name, String country, Boolean isPublished, Pageable paging) {
+	public List<Station> findByCategoriesNameAndCountryAndPublished(String name, String country, Boolean isPublished, Pageable paging) {
 		// TODO Auto-generated method stub
-		return stationRepository.findByCategoriesNameAndCountryAndPublished(name, country, isPublished, paging);
+		System.out.println("Offset: " + paging.getOffset());
+		System.out.println("Page Size: " + paging.getPageSize());
+		return stationRepository.findByCategoriesNameAndCountryAndPublished(name, country, isPublished, paging.getPageSize(), paging.getOffset());
 	}
 }

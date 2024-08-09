@@ -25,6 +25,10 @@ public interface StationRepository extends JpaRepository<Station, Long> {
 
 	List<Station> findByCategoriesNameAndPublished(String name, Pageable paging, Boolean isPublished);
 
+	//Page<Station> findByCategoriesNameAndCountryAndPublished(String name, String country, Boolean isPublished, Pageable paging);
+
+
+	
 	@Query( value = "SELECT s.*, ss.statistics_id"
 					+ " FROM stations s join stations_categories sc on s.id = sc.station_id"
 					+ " join categories c on sc.categories_id = c.id "
@@ -34,19 +38,9 @@ public interface StationRepository extends JpaRepository<Station, Long> {
 					+ " AND s.country = :country"
 					+ " AND s.published = :isPublished"
 					+ " GROUP BY (s.id,s.title, c.name, st.rb_votes, ss.statistics_id)"
-					+ " ORDER BY st.rb_votes Desc Limit 20 \n--#pageable\\n-", 
-			countQuery = "SELECT count(s.*), ss.statistics_id"
-					+ " FROM stations s join stations_categories sc on s.id = sc.station_id"
-					+ " join categories c on sc.categories_id = c.id "
-					+ " join stations_statistics ss on s.id = ss.stations_id"
-					+ " join statistic st on ss.statistics_id = st.id"
-					+ " WHERE c.name = :name"
-					+ " AND s.country = :country"
-					+ " AND s.published = :isPublished"
-					+ " GROUP BY (s.id,s.title, c.name, st.rb_votes, ss.statistics_id)"
-					+ " ORDER BY st.rb_votes Desc \n--#pageable\\n-", 			
-			
+					+ " ORDER BY st.rb_votes Desc OFFSET :offset LIMIT :size", 				
 			nativeQuery=true)
-	Page<Station> findByCategoriesNameAndCountryAndPublished(String name, String country,
-			Boolean isPublished, Pageable paging);
+	List<Station> findByCategoriesNameAndCountryAndPublished(String name, String country,
+			Boolean isPublished, int size, long offset);
+			
 }

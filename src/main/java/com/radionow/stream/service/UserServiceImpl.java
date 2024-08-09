@@ -51,4 +51,10 @@ public class UserServiceImpl implements UserService {
 		return userRepository.findById(id);
 	}
 
+	@Override
+	public User findByDeviceId(String id) {
+		// TODO Auto-generated method stub
+		return userRepository.findByDeviceId(id);
+	}
+
 }

@@ -96,10 +96,10 @@ function App() {
                     <tr>
                         <th width="5%">Id</th>
                         <th width="20%">Title</th>
-                        <th width="40%">Description</th>
+                        <th width="35%">Description</th>
                         <th width="5%">Image</th>
                         <th width="10%">Action</th>
-                        <th width="30%">Preview</th>
+                        <th width="35%">Preview</th>
 
                     </tr>
                     </thead>

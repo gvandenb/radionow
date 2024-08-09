@@ -4,9 +4,6 @@ import AppNavbar from './AppNavbar';
 import { Link } from 'react-router-dom';
 //import './style.scss';
 
-let PageSize = 100;
-let currentPage = 0;
-let totalCount = 48145;
 
 class StationList extends Component {
 

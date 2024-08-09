@@ -369,7 +369,7 @@ public class FeedController {
 		// discover endpoint
 		Optional<String> endpoint = null;
 		try {
-			endpoint = new EndpointDiscovery("streamer/1.0").discover();
+			endpoint = new EndpointDiscovery("stremr/1.0").discover();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

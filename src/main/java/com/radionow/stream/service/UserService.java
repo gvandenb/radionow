@@ -18,5 +18,7 @@ public interface UserService {
 
 	public Optional<User> findById(Long id);
 
+	public User findByDeviceId(String id);
+
 
 }

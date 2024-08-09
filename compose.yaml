@@ -4,6 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: gvandenb/radionow-api:latest
     container_name: app
     depends_on:
       es:
@@ -20,19 +21,21 @@ services:
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - SPRING_ELASTICSEARCH_URIS=es:9200
     ports:
-      - 8081:8081
+      - 80:8081
   es:
     image: 'docker.elastic.co/elasticsearch/elasticsearch:7.17.10'
     container_name: es
     healthcheck:
       test: curl -s http://es:9200 >/dev/null || exit 1
-      interval: 5s
-      timeout: 5s
-      retries: 20
+      interval: 10s
+      timeout: 10s
+      retries: 24
     environment:
       - bootstrap.memory_lock=true
       - xpack.security.enabled=false
       - discovery.type=single-node
+    volumes:
+      - ~/apps/elasticsearch:/usr/share/elasticsearch/data
     ports:
       - 9200:9200
       - 9300:9300

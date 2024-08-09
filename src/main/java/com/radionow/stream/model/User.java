@@ -26,6 +26,9 @@ public class User {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long id;
 	
+	@Column(name = "device_id")
+	private String deviceId;
+	
 	@Column(name = "first_name")
 	private String firstName;
 	
@@ -58,8 +61,9 @@ public class User {
 	
 	public User() {}
 
-	public User(String firstName, String lastName, String email, String phoneNumber, Statistic statistic, List<String> devices) {
+	public User(String deviceId, String firstName, String lastName, String email, String phoneNumber, Statistic statistic, List<String> devices) {
 		super();
+		this.deviceId = deviceId;
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.email = email;
@@ -74,6 +78,14 @@ public class User {
 
 	public void setId(Long id) {
 		this.id = id;
+	}
+
+	public String getDeviceId() {
+		return deviceId;
+	}
+
+	public void setDeviceId(String deviceId) {
+		this.deviceId = deviceId;
 	}
 
 	public String getFirstName() {

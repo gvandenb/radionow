@@ -7,9 +7,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "favorite_station")
+@Table(name = "favorite_station", uniqueConstraints={
+	    @UniqueConstraint(columnNames = {"user_id", "station_id"})
+	}) 
 public class FavoriteStation {
 
 	@Id

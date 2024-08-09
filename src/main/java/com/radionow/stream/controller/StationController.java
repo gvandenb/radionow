@@ -42,7 +42,7 @@ public class StationController {
 	public ResponseEntity<List<Station>> getAllStationsByCategoryName(
 			@RequestParam(required = true) String name, 
 			@RequestParam(defaultValue = "0") int page,
-	        @RequestParam(defaultValue = "10") int size,
+	        @RequestParam(defaultValue = "20") int size,
 			@RequestParam(required = true) String sort) {
 		try {
 			
@@ -51,7 +51,7 @@ public class StationController {
 			Pageable paging = PageRequest.of(page, size, Sort.by(sort).descending());
 			Boolean isPublished = true;
 			//stations = stationService.findByCategoriesNameAndPublished(name, paging, isPublished);
-			stations = stationService.findByCategoriesNameAndCountryAndPublished(name, "US", isPublished, paging).getContent();
+			stations = stationService.findByCategoriesNameAndCountryAndPublished(name, "US", isPublished, paging);
 
 			System.out.println("Station category search for: " + name);
 			if (stations.isEmpty()) {

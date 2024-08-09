@@ -37,19 +37,19 @@ public class UserConfig {
 	@Builder.Default
 	@Column(name = "podcastSections")
 	@OrderBy(value = "sortOrder")
-	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@OneToMany(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
 	private List<Section> podcastSections = new ArrayList<Section>();
 
 	@Builder.Default
 	@Column(name = "stationSections")
 	@OrderBy(value = "sortOrder")
-	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@OneToMany(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
 	private List<Section> stationSections = new ArrayList<Section>();
 	
 	@Builder.Default
 	@Column(name = "audiobookSections")
 	@OrderBy(value = "sortOrder")
-	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@OneToMany(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
 	private List<Section> audiobookSections = new ArrayList<Section>();
 	
 

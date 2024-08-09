@@ -70,6 +70,15 @@ public class UserAlarm {
 	@Column(name = "alarm_time")
 	private Date alarmTime;
 	
+	@Column(name = "alarm_hour")
+    private Integer alarmHour;
+	
+	@Column(name = "alarm_minute")
+    private Integer alarmMinute;
+	
+	@Column(name = "alarm_meridian")
+    private String alarmMeridian;
+	
 	@Column(name = "created_at")
 	@CreationTimestamp
     private Date createdAt;

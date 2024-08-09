@@ -79,7 +79,8 @@ public class UserController {
 	public ResponseEntity<User> createUser(@RequestBody User user) {
 		try {
 			User _user = userService
-					.save(new User(user.getFirstName(), 
+					.save(new User(user.getDeviceId(), 
+							user.getFirstName(), 
 							user.getLastName(), 
 							user.getEmail(), 
 							user.getPhoneNumber(), 
@@ -116,6 +117,21 @@ public class UserController {
 		try {
 			 User user = userService.findById(id).get();
 
+			 return new ResponseEntity<>(user, HttpStatus.OK);
+		} catch (Exception e) {
+			 return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	@GetMapping("/users/device/{id}")
+	public ResponseEntity<User> getUserByDeviceId(@PathVariable("id") String id) {
+		try {
+			 User user = userService.findByDeviceId(id);
+			 if (user == null) {
+				 User newUser = new User();
+				 newUser.setDeviceId(id);
+				 user = userService.save(newUser);
+			 }
 			 return new ResponseEntity<>(user, HttpStatus.OK);
 		} catch (Exception e) {
 			 return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
